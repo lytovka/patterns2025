@@ -1,6 +1,6 @@
 "use strict";
 
-import { parseCsv, sortCsvTableBy } from "./utils.js";
+import { parseCsv, csvToListOfObjects, sortCsvTableBy } from "./utils.js";
 
 const data = `city,population,area,density,country
   Shanghai,24256800,6340,3826,China
@@ -16,5 +16,6 @@ const data = `city,population,area,density,country
 
 // main
 const csv = parseCsv(data);
-const sorted = sortCsvTableBy(csv, { property: "density", ordinality: "desc" });
+const listOfObj = csvToListOfObjects(csv);
+const sorted = sortCsvTableBy(listOfObj, { property: "density", ordinality: "desc" });
 console.table(sorted);

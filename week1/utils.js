@@ -16,7 +16,7 @@ export function parseCsv(data) {
     const cells = lines[i].split(",").slice(0, maxElementsInRow);
     table.push(cells);
   }
-  return csvToListOfObjects({ columns, table });
+  return { columns, table }
 }
 
 export function csvToListOfObjects(csv) {
