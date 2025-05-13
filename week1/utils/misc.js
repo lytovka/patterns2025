@@ -4,9 +4,12 @@ export function compareNumbers(a, b, ordinality) {
 }
 
 export function intersectingKeys(objs) {
-  const setsOfKeys = objs.map(obj => new Set(Object.keys(obj)))
-  const intersectedSet = setsOfKeys.reduce((a, b) => a.intersection(b), setsOfKeys[0])
-  return Array.from(intersectedSet)
+  const setsOfKeys = objs.map((obj) => new Set(Object.keys(obj)));
+  const intersectedSet = setsOfKeys.reduce(
+    (a, b) => a.intersection(b),
+    setsOfKeys[0],
+  );
+  return Array.from(intersectedSet);
 }
 
 export function maxLengthElement(arr) {
@@ -15,10 +18,9 @@ export function maxLengthElement(arr) {
 }
 
 export function isObject(any) {
-  return typeof any === 'object' && !Array.isArray(any) && any !== null
+  return typeof any === "object" && !Array.isArray(any) && any !== null;
 }
 
 export function isNonEmptyArray(any) {
   return Array.isArray(any) && any.length > 0;
 }
-

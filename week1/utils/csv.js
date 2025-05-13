@@ -11,7 +11,7 @@ export function parseCsv(data) {
     const cells = lines[i].split(",").slice(0, maxElementsInRow);
     table.push(cells);
   }
-  return { columns, table }
+  return { columns, table };
 }
 
 export function csvToListOfObjects(csv) {
@@ -35,4 +35,3 @@ export function sortCsvTableBy(csv, options) {
     compareNumbers(r1[property], r2[property], ordinality),
   );
 }
-
