@@ -1,7 +1,7 @@
 "use strict";
 
 import { formatToTable } from "./utils/renderer.js";
-import { parseCsv, csvToListOfObjects } from "./utils/csv.js";
+import { csvToListOfObjects, fromString } from "./utils/csv.js";
 import { sortListOfObjectsBy } from "./utils/misc.js";
 
 const data = `city,population,area,density,country
@@ -16,9 +16,17 @@ const data = `city,population,area,density,country
   New York City,8537673,784,10892,United States
   Bangkok,8280925,1569,5279,Thailand`;
 
+
+export function parseCsv(data) {
+  const { columns, table } = fromString(data);
+  const getColumns = () => columns
+  const getTable = () => table
+  return { getColumns, getTable };
+}
+
 // main
 const csv = parseCsv(data);
-const listOfObj = csvToListOfObjects(csv);
+const listOfObj = csvToListOfObjects({ columns: csv.getColumns(), table: csv.getTable() });
 const sorted = sortListOfObjectsBy(listOfObj, "density", {
   ordinality: "desc",
 });

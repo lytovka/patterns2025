@@ -2,7 +2,7 @@ import { isNonEmptyArray, isObject } from "./misc.js";
 
 const getTrimmedLines = (csv) => csv.split("\n").map((l) => l.trim());
 
-export function parseCsv(data) {
+export function fromString(data) {
   if (typeof data !== "string" || !data.trim()) {
     throw new Error("The agument must be a non-empty string");
   }
@@ -16,6 +16,10 @@ export function parseCsv(data) {
     table.push(cells);
   }
   return { columns, table };
+}
+
+export function parseCsv(data) {
+  return fromString(data);
 }
 
 export function csvToListOfObjects(csv) {

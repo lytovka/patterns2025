@@ -1,6 +1,6 @@
 "use strict";
 
-import { renderTable } from "./utils/renderer.js";
+import { formatToTable } from "./utils/renderer.js";
 import { parseCsv, csvToListOfObjects } from "./utils/csv.js";
 import { sortListOfObjectsBy } from "./utils/misc.js";
 
@@ -42,8 +42,8 @@ class Objects {
     return this;
   }
 
-  render(options = {}) {
-    return renderTable(this.objects, options);
+  toString(options = {}) {
+    return formatToTable(this.objects, options);
   }
 }
 
@@ -53,4 +53,4 @@ const csvObjs = new Objects(csv.toListOfObjects());
 const sortedObjs = csvObjs.sortBy("density", {
   ordinality: "desc",
 });
-console.log(sortedObjs.render({ gap: 6 }));
+console.log(sortedObjs.toString({ gap: 6 }));

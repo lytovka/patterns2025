@@ -14,7 +14,7 @@ function getPaddedRow(row, gaps) {
   return row.map((cell, i) => cell.padEnd(gaps[i], " ")).join("") + "\n";
 }
 
-export function renderTable(table, options) {
+export function formatToTable(table, options) {
   const isListOfObjects =
     isNonEmptyArray(table) && table.every((entry) => isObject(entry));
   if (!isListOfObjects) return;
