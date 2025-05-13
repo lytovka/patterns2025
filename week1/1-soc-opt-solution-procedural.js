@@ -19,8 +19,7 @@ const data = `city,population,area,density,country
 // main
 const csv = parseCsv(data);
 const listOfObj = csvToListOfObjects(csv);
-const sorted = sortListOfObjectsBy(listOfObj, {
-  property: "density",
+const sorted = sortListOfObjectsBy(listOfObj, "density", {
   ordinality: "desc",
 });
 console.log(renderTable(sorted, { gap: 6 }));
