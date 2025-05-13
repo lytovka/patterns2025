@@ -1,8 +1,3 @@
-export function compareNumbers(a, b, ordinality) {
-  if (ordinality === "desc") return b - a;
-  return a - b;
-}
-
 export function intersectingKeys(objs) {
   const setsOfKeys = objs.map((obj) => new Set(Object.keys(obj)));
   const intersectedSet = setsOfKeys.reduce(

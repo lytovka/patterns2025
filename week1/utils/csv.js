@@ -1,5 +1,3 @@
-import { compareNumbers } from "./misc.js";
-
 const getTrimmedLines = (csv) => csv.split("\n").map((l) => l.trim());
 
 export function parseCsv(data) {
@@ -31,7 +29,7 @@ export function sortCsvTableBy(csv, options) {
   const { property = "density", ordinality = "desc" } = options;
   const isPropertyExist = csv.some((entry) => Object.hasOwn(entry, property));
   if (!isPropertyExist) throw new Error(`Unknown property '${property}'`);
-  return csv.sort((r1, r2) =>
-    compareNumbers(r1[property], r2[property], ordinality),
+  return csv.sort(
+    (r1, r2) => (r1[property] - r2[property]) * (ordinality === "asc" ? 1 : -1),
   );
 }
