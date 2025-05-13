@@ -3,6 +3,7 @@
 Prerequisites
 
 ```bash
+nvm use # lock node version from `.nvmrc`
 npm i
 ```
 
