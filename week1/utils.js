@@ -1,7 +1,20 @@
 // misc utils
+const DEFAULT_COLUMN_GAP = 5;
+
 export function compareNumbers(a, b, ordinality) {
   if (ordinality === "desc") return b - a;
   return a - b;
+}
+
+export function intersectingKeys(objs) {
+  const setsOfKeys = objs.map(obj => new Set(Object.keys(obj)))
+  const intersectedSet = setsOfKeys.reduce((a, b) => a.intersection(b), setsOfKeys[0])
+  return Array.from(intersectedSet)
+}
+
+export function maxLengthElement(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return 0;
+  return arr.reduce((max, str) => Math.max(max, str.length), 0);
 }
 
 function isObject(any) {
@@ -45,42 +58,36 @@ export function sortCsvTableBy(csv, options) {
   );
 }
 
+function getPaddedRow(row, gaps) {
+  if (!Array.isArray(row) || row.length === 0 || !Array.isArray(gaps) || row.length === 0) return "";
+  if (row.length !== gaps.length) throw new Error("Row and gaps length mismatch");
+  return row.map((cell, i) => cell.padEnd(gaps[i], " ")).join("") + "\n"
+}
+
 export function renderTable(table, options) {
   const isListOfObjects = Array.isArray(table) && table.length !== 0 && table.every((entry) => isObject(entry));
   if (!isListOfObjects) return;
 
-  const { gap = 5 } = options
+  const { gap = DEFAULT_COLUMN_GAP } = options
 
   // find unique columns
-  const setOfColumns = new Set();
-  for (let i = 0; i < table.length; i++) {
-    const columnKeys = Object.keys(table[i]);
-    for (let j = 0; j < columnKeys.length; j++) {
-      setOfColumns.add(columnKeys[j]);
-    }
-  }
+  const columns = intersectingKeys(table);
 
   // find minimum offset width for each column
-  const columnWidths = new Map();
-  for (const column of setOfColumns) {
-    const maxWidth = Math.max(...table.map((entry) => String(entry[column]).length), column.length);
-    columnWidths.set(column, maxWidth);
+  const columnMinWidths = Array.from({ length: columns.length })
+  for (let i = 0; i < columns.length; i++) {
+    const currentColumn = columns[i]
+    columnMinWidths[i] = maxLengthElement([...table.map((entry) => entry[currentColumn]), currentColumn]);
   }
+  const gaps = columnMinWidths.map((v) => v + gap);
 
   // render
-  const cols = [...setOfColumns.values()]
-  const strHeaders = cols.map(column => column.padEnd(columnWidths.get(column) + gap, " ")).join("") + "\n"
+  const strHeaders = getPaddedRow(columns, gaps)
   let renderedTable = strHeaders
   for (let i = 0; i < table.length; i++) {
-    let rowStr = []
-    const row = table[i]
-    for (const col of cols) {
-      const cell = row[col]
-      const diff = columnWidths.get(col) + gap
-      rowStr.push(cell.padEnd(diff, " "))
-    }
-    rowStr.push("\n")
-    renderedTable += rowStr.join("")
+    const row = Object.values(table[i])
+    const renderedRow = getPaddedRow(row, gaps)
+    renderedTable += renderedRow
   }
   return renderedTable
 }
