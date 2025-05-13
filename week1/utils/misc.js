@@ -23,3 +23,12 @@ export function isObject(any) {
 export function isNonEmptyArray(any) {
   return Array.isArray(any) && any.length > 0;
 }
+
+export function sortListOfObjectsBy(objs, options) {
+  const { property, ordinality = "desc" } = options;
+  const isPropertyExist = objs.some((entry) => Object.hasOwn(entry, property));
+  if (!isPropertyExist) throw new Error(`Unknown property '${property}'`);
+  return objs.sort(
+    (r1, r2) => (r1[property] - r2[property]) * (ordinality === "asc" ? 1 : -1),
+  );
+}

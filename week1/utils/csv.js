@@ -1,7 +1,13 @@
+import { isNonEmptyArray, isObject } from "./misc.js";
+
 const getTrimmedLines = (csv) => csv.split("\n").map((l) => l.trim());
 
 export function parseCsv(data) {
+  if (typeof data !== "string" || !data.trim()) {
+    throw new Error("The agument must be a non-empty string");
+  }
   const lines = getTrimmedLines(data);
+  if (lines.length < 2) throw new Error("Invalid CSV format");
   const columns = lines[0].split(",");
   const table = [];
   const maxElementsInRow = columns.length;
@@ -13,7 +19,13 @@ export function parseCsv(data) {
 }
 
 export function csvToListOfObjects(csv) {
+  if (!isObject(csv)) {
+    throw new Error("CSV must be an object");
+  }
   const { columns, table } = csv;
+  if (!isNonEmptyArray(columns) || !isNonEmptyArray(table)) {
+    throw new Error("Both columns and table must be arrays");
+  }
   const result = [];
   for (let i = 0; i < table.length; i++) {
     const obj = {};
@@ -23,13 +35,4 @@ export function csvToListOfObjects(csv) {
     result.push(obj);
   }
   return result;
-}
-
-export function sortCsvTableBy(csv, options) {
-  const { property = "density", ordinality = "desc" } = options;
-  const isPropertyExist = csv.some((entry) => Object.hasOwn(entry, property));
-  if (!isPropertyExist) throw new Error(`Unknown property '${property}'`);
-  return csv.sort(
-    (r1, r2) => (r1[property] - r2[property]) * (ordinality === "asc" ? 1 : -1),
-  );
 }
