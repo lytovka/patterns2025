@@ -15,3 +15,9 @@ node week1/1-soc-opt.js # original
 ```bash
 node week1/1-soc-opt-solution-procedural.js # my solution
 ```
+
+Run tests
+
+```bash
+npm run test
+```

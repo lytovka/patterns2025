@@ -16,9 +16,7 @@ function getPaddedRow(row, gaps) {
 
 export function renderTable(table, options) {
   const isListOfObjects =
-    Array.isArray(table) &&
-    table.length !== 0 &&
-    table.every((entry) => isObject(entry));
+    isNonEmptyArray(table) && table.every((entry) => isObject(entry));
   if (!isListOfObjects) return;
 
   const { gap = DEFAULT_COLUMN_GAP } = options;
