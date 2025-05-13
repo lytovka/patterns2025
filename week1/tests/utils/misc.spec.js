@@ -6,6 +6,7 @@ import {
   isObject,
   intersectingKeys,
   maxLengthElement,
+  sortListOfObjectsBy,
 } from "../../utils/misc.js";
 
 describe("isNonEmptyArray", () => {
@@ -92,5 +93,69 @@ describe("intersectingKeys", () => {
       { a: 3, c: 4 },
     ]);
     assert.deepEqual(result, ["a"]);
+  });
+});
+
+describe("sortListOfObjectsBy", () => {
+  it("given empty array, should return empty array", () => {
+    const result = sortListOfObjectsBy([]);
+    assert.deepEqual(result, []);
+  });
+
+  it("given non-array, should return empty array", () => {
+    const result = sortListOfObjectsBy({});
+    assert.deepEqual(result, []);
+  });
+
+  it("given valid array of objects, if property does not exist, should throw an error", () => {
+    assert.throws(
+      () => {
+        sortListOfObjectsBy(
+          [
+            { name: "Alice", age: 30 },
+            { name: "Bob", age: 25 },
+            { name: "Charlie", age: 35 },
+          ],
+          "height",
+        );
+      },
+      {
+        name: "Error",
+        message: "Unknown property 'height'",
+      },
+    );
+  });
+
+  it("given valid array of objects, should sort by property in descending order", () => {
+    const result = sortListOfObjectsBy(
+      [
+        { name: "Alice", age: 30 },
+        { name: "Bob", age: 25 },
+        { name: "Charlie", age: 35 },
+      ],
+      "age",
+    );
+    assert.deepEqual(result, [
+      { name: "Charlie", age: 35 },
+      { name: "Alice", age: 30 },
+      { name: "Bob", age: 25 },
+    ]);
+  });
+
+  it("given valid array of objects, should sort by property in ascending order", () => {
+    const result = sortListOfObjectsBy(
+      [
+        { name: "Alice", age: 30 },
+        { name: "Bob", age: 25 },
+        { name: "Charlie", age: 35 },
+      ],
+      "age",
+      { ordinality: "asc" },
+    );
+    assert.deepEqual(result, [
+      { name: "Bob", age: 25 },
+      { name: "Alice", age: 30 },
+      { name: "Charlie", age: 35 },
+    ]);
   });
 });

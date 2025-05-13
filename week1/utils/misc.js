@@ -24,8 +24,13 @@ export function isNonEmptyArray(any) {
   return Array.isArray(any) && any.length > 0;
 }
 
-export function sortListOfObjectsBy(objs, options) {
-  const { property, ordinality = "desc" } = options;
+export function sortListOfObjectsBy(
+  objs,
+  property,
+  options = { ordinality: "desc" },
+) {
+  if (!isNonEmptyArray(objs)) return [];
+  const { ordinality } = options;
   const isPropertyExist = objs.some((entry) => Object.hasOwn(entry, property));
   if (!isPropertyExist) throw new Error(`Unknown property '${property}'`);
   return objs.sort(
