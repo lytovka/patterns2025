@@ -61,11 +61,15 @@ const purchase = {
 };
 
 console.log(purchase);
+const errors = []
 calculateTotal(purchase, (error, bill) => {
-  console.count("ivan")
   if (error) {
-    console.log('Error detected');
-    return void console.error(error);
+    errors.push(error)
   }
-  console.log(bill);
+  else
+    console.log(bill);
 });
+
+if (errors.length > 0) {
+  console.log(AggregateError(errors))
+}
