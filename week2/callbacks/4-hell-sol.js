@@ -47,25 +47,26 @@ const budget = (limit) => {
 
 const wallet = budget(1650);
 
-const checkSuccess = (amount, subtotal) => (success) => {
-  if (success) amount += subtotal;
+const checkSuccess = (state) => (success) => {
+  if (success) state.amount += state.subtotal;
   wallet.rest((balance) => {
-    console.log({ success, amount, subtotal, balance });
+    console.log({ success, amount: state.amount, subtotal: state.subtotal, balance });
   });
 }
 
-const processSubtotal = (amount) => (subtotal) => {
-  wallet.withdraw(subtotal, checkSuccess(amount, subtotal))
+const processSubtotal = (state) => (subtotal) => {
+  state.subtotal = subtotal
+  wallet.withdraw(subtotal, checkSuccess(state))
 }
 
-const processGroupTotal = (amount) => (group) => {
-  groupTotal(group, processSubtotal(amount))
+const processGroupTotal = (state) => (group) => {
+  groupTotal(group, processSubtotal(state))
 }
 
-const processPurchase = (amount) => (purchase) => {
-  iterateGroups(purchase, processGroupTotal(amount));
+const processPurchase = (state) => (purchase) => {
+  iterateGroups(purchase, processGroupTotal(state));
 }
 
-let amount = 0;
-getPurchase(processPurchase(amount));
+let state = { amount: 0 };
+getPurchase(processPurchase(state));
 
