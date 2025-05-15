@@ -14,12 +14,12 @@ function getPaddedRow(row, gaps) {
   return row.map((cell, i) => cell.padEnd(gaps[i], " ")).join("") + "\n";
 }
 
-export function formatToTable(table, options) {
+export function formatToTable(table, options = { gap: DEFAULT_COLUMN_GAP }) {
   const isListOfObjects =
     isNonEmptyArray(table) && table.every((entry) => isObject(entry));
   if (!isListOfObjects) return;
 
-  const { gap = DEFAULT_COLUMN_GAP } = options;
+  const { gap } = options;
 
   // find unique columns
   const columns = intersectingKeys(table);
@@ -33,14 +33,13 @@ export function formatToTable(table, options) {
       currentColumn,
     ]);
   }
-  const gaps = columnMinWidths.map((v) => v + gap);
+  const paddings = columnMinWidths.map((v) => v + gap);
 
   // render
-  const strHeaders = getPaddedRow(columns, gaps);
-  let renderedTable = strHeaders;
+  let renderedTable = getPaddedRow(columns, paddings);
   for (let i = 0; i < table.length; i++) {
     const row = Object.values(table[i]);
-    const renderedRow = getPaddedRow(row, gaps);
+    const renderedRow = getPaddedRow(row, paddings);
     renderedTable += renderedRow;
   }
   return renderedTable;
