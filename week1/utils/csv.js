@@ -14,8 +14,7 @@ export function fromString(data) {
   const content = Array.from({ length: headers.length });
   const maxElementsInRow = content.length
   for (let i = 0; i < rawContent.length; i++) {
-    const cells = splitCsvRow(rawContent[i]).slice(0, maxElementsInRow);
-    content[i] = cells;
+    content[i] = splitCsvRow(rawContent[i]).slice(0, maxElementsInRow);
   }
   return { headers, content };
 }
