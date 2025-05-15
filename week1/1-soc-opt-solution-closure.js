@@ -17,17 +17,17 @@ const data = `city,population,area,density,country
   Bangkok,8280925,1569,5279,Thailand`;
 
 
-export function parseCsv(data) {
-  const { columns, table } = fromString(data);
-  const getColumns = () => columns
-  const getTable = () => table
-  return { getColumns, getTable };
+function parseCsv(data) {
+  const { headers, content } = fromString(data);
+  const getHeaders = () => headers
+  const getContent = () => content
+  return { getHeaders, getContent };
 }
 
 // main
 const csv = parseCsv(data);
-const listOfObj = csvToListOfObjects({ columns: csv.getColumns(), table: csv.getTable() });
-const sorted = sortListOfObjectsBy(listOfObj, "density", {
-  ordinality: "desc",
+const listOfObj = csvToListOfObjects({ headers: csv.getHeaders(), content: csv.getContent() });
+const sorted = sortListOfObjectsBy(listOfObj, "area", {
+  ordinality: "asc",
 });
 console.log(formatToTable(sorted, { gap: 6 }));

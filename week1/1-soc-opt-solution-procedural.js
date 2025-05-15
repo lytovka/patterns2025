@@ -2,7 +2,7 @@
 
 import { formatToTable } from "./utils/renderer.js";
 import { parseCsv, csvToListOfObjects } from "./utils/csv.js";
-import { sortListOfObjectsBy } from "./utils/misc.js";
+import { sortListOfObjectsBy, relative } from "./utils/misc.js";
 
 const data = `city,population,area,density,country
   Shanghai,24256800,6340,3826,China
@@ -19,7 +19,11 @@ const data = `city,population,area,density,country
 // main
 const csv = parseCsv(data);
 const listOfObj = csvToListOfObjects(csv);
-const sorted = sortListOfObjectsBy(listOfObj, "density", {
+const sortedListOfObj = sortListOfObjectsBy(listOfObj, "density", {
   ordinality: "desc",
 });
-console.log(formatToTable(sorted, { gap: 6 }));
+const relativeDensity = sortedListOfObj.map((obj) => relative(obj.density, sortedListOfObj[0].density))
+for (let i = 0; i < sortedListOfObj.length; i++) {
+  sortedListOfObj[i]["rel_density"] = relativeDensity[i].toString()
+}
+console.log(formatToTable(sortedListOfObj, { gap: 5 }));

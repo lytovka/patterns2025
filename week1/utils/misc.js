@@ -24,6 +24,12 @@ export function isNonEmptyArray(any) {
   return Array.isArray(any) && any.length > 0;
 }
 
+export function relative(part, whole) {
+  if (Number.isNaN(part) || Number.isNaN(part)) return 0
+  if (whole === 0) throw new Error("Cannot divise by zero")
+  return Math.round((part / whole) * 100)
+}
+
 export function sortListOfObjectsBy(
   objs,
   property,
@@ -37,3 +43,4 @@ export function sortListOfObjectsBy(
     (r1, r2) => (r1[property] - r2[property]) * (ordinality === "asc" ? 1 : -1),
   );
 }
+

@@ -17,9 +17,9 @@ const data = `city,population,area,density,country
   Bangkok,8280925,1569,5279,Thailand`;
 
 class Csv {
-  constructor(columns, table) {
-    this.columns = columns;
-    this.table = table;
+  constructor(headers, content) {
+    this.headers = headers;
+    this.content = content;
   }
 
   toListOfObjects() {
@@ -27,8 +27,8 @@ class Csv {
   }
 
   static fromString(csvString) {
-    const { columns, table } = parseCsv(csvString);
-    return new Csv(columns, table);
+    const { headers, content } = parseCsv(csvString);
+    return new Csv(headers, content);
   }
 }
 

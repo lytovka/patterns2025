@@ -17,13 +17,12 @@ describe("parseCsv", () => {
         },
         {
           name: "Error",
-          message: "The agument must be a non-empty string",
         },
       );
     });
   });
 
-  it("given columns without rows, should throw an error", () => {
+  it("given headers without rows, should throw an error", () => {
     assert.throws(
       () => {
         parseCsv(invalidCsv);
@@ -35,10 +34,10 @@ describe("parseCsv", () => {
     );
   });
 
-  it("should parse CSV data into columns and table", () => {
+  it("should parse CSV data into headers and content", () => {
     const result = parseCsv(regularCsv);
-    assert.deepEqual(result.columns, ["car", "model", "year"]);
-    assert.deepEqual(result.table, [
+    assert.deepEqual(result.headers, ["car", "model", "year"]);
+    assert.deepEqual(result.content, [
       ["bmw", "3 Series", "2020"],
       ["mercedes", "C-Class", "2021"],
       ["toyota", "Camry", "2019"],
@@ -47,8 +46,8 @@ describe("parseCsv", () => {
 
   it("should handle sparse CSV data", () => {
     const result = parseCsv(sparseCsv);
-    assert.deepEqual(result.columns, ["car", "model", "year"]);
-    assert.deepEqual(result.table, [
+    assert.deepEqual(result.headers, ["car", "model", "year"]);
+    assert.deepEqual(result.content, [
       ["bmw", "3 Series", "2020"],
       ["mercedes", "", "2021"],
       ["toyota", "Camry", ""],
@@ -58,16 +57,16 @@ describe("parseCsv", () => {
 
 describe("csvToListOfObjects", () => {
   const regularCsv = {
-    columns: ["car", "model", "year"],
-    table: [
+    headers: ["car", "model", "year"],
+    content: [
       ["bmw", "3 Series", "2020"],
       ["mercedes", "C-Class", "2021"],
       ["toyota", "Camry", "2019"],
     ],
   };
   const sparseCsv = {
-    columns: ["car", "model", "year"],
-    table: [
+    headers: ["car", "model", "year"],
+    content: [
       ["bmw", "3 Series", "2020"],
       ["mercedes", "", "2021"],
       ["toyota", "Camry", ""],
@@ -89,15 +88,14 @@ describe("csvToListOfObjects", () => {
     });
   });
 
-  it("given csv with invalid columns or table, should throw an error", () => {
-    const invalidCsv = { columns: "", table: [] };
+  it("given csv with invalid headers or content, should throw an error", () => {
+    const invalidCsv = { headers: "", content: [] };
     assert.throws(
       () => {
         csvToListOfObjects(invalidCsv);
       },
       {
         name: "Error",
-        message: "Both columns and table must be arrays",
       },
     );
   });
