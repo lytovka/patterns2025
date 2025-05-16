@@ -20,7 +20,7 @@ const data = `city,population,area,density,country
 const csv = parseCsv(data);
 const listOfObj = csvToListOfObjects(csv);
 const sortedListOfObj = sortListOfObjectsBy(listOfObj, "density", {
-  ordinality: "desc",
+  order: "desc",
 });
 const relativeDensity = sortedListOfObj.map((obj) => relative(obj.density, sortedListOfObj[0].density))
 for (let i = 0; i < sortedListOfObj.length; i++) {

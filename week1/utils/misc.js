@@ -33,14 +33,14 @@ export function relative(part, whole) {
 export function sortListOfObjectsBy(
   objs,
   property,
-  options = { ordinality: "desc" },
+  options = { order: "desc" },
 ) {
   if (!isNonEmptyArray(objs)) return [];
-  const { ordinality } = options;
+  const { order } = options;
   const isPropertyExist = objs.some((entry) => Object.hasOwn(entry, property));
   if (!isPropertyExist) throw new Error(`Unknown property '${property}'`);
   return objs.sort(
-    (r1, r2) => (r1[property] - r2[property]) * (ordinality === "asc" ? 1 : -1),
+    (r1, r2) => (r1[property] - r2[property]) * (order === "asc" ? 1 : -1),
   );
 }
 

@@ -51,6 +51,6 @@ class Objects {
 const csv = Csv.fromString(data);
 const csvObjs = new Objects(csv.toListOfObjects());
 const sortedObjs = csvObjs.sortBy("density", {
-  ordinality: "desc",
+  order: "desc",
 });
 console.log(sortedObjs.toString({ gap: 6 }));

@@ -28,6 +28,6 @@ function parseCsv(data) {
 const csv = parseCsv(data);
 const listOfObj = csvToListOfObjects({ headers: csv.getHeaders(), content: csv.getContent() });
 const sorted = sortListOfObjectsBy(listOfObj, "area", {
-  ordinality: "asc",
+  order: "asc",
 });
 console.log(formatToTable(sorted, { gap: 6 }));

@@ -146,7 +146,7 @@ describe("sortListOfObjectsBy", () => {
         { name: "Charlie", age: 35 },
       ],
       "age",
-      { ordinality: "asc" },
+      { order: "asc" },
     );
     assert.deepEqual(result, [
       { name: "Bob", age: 25 },
