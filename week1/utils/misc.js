@@ -25,9 +25,9 @@ export function isNonEmptyArray(any) {
 }
 
 export function relative(part, whole) {
-  if (Number.isNaN(part) || Number.isNaN(part)) return 0
-  if (whole === 0) throw new Error("Cannot divise by zero")
-  return Math.round((part / whole) * 100)
+  if (Number.isNaN(part) || Number.isNaN(part)) return 0;
+  if (whole === 0) throw new Error("Cannot divise by zero");
+  return Math.round((part / whole) * 100);
 }
 
 export function sortListOfObjectsBy(
@@ -44,3 +44,20 @@ export function sortListOfObjectsBy(
   );
 }
 
+export function addRelativeProperty(objects, property, options = {}) {
+  if (!isNonEmptyArray(objects) || !property) return [];
+  const numbers = objects.map((obj) => Number(obj[property] || 0));
+  const {
+    targetProperty = `rel_${property}`,
+    baseValue = Math.max(...numbers),
+    asString = true,
+  } = options;
+  return objects.map((obj, index) => {
+    const relativeValue = relative(numbers[index], baseValue);
+    Object.defineProperty(obj, targetProperty, {
+      enumerable: true,
+      value: asString ? relativeValue.toString() : relativeValue,
+    });
+    return obj;
+  });
+}

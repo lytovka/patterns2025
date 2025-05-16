@@ -2,7 +2,7 @@
 
 import { formatToTable } from "./utils/renderer.js";
 import { parseCsv, csvToListOfObjects } from "./utils/csv.js";
-import { sortListOfObjectsBy, relative } from "./utils/misc.js";
+import { sortListOfObjectsBy, addRelativeProperty } from "./utils/misc.js";
 
 const data = `city,population,area,density,country
   Shanghai,24256800,6340,3826,China
@@ -22,8 +22,5 @@ const listOfObj = csvToListOfObjects(csv);
 const sortedListOfObj = sortListOfObjectsBy(listOfObj, "density", {
   order: "desc",
 });
-const relativeDensity = sortedListOfObj.map((obj) => relative(obj.density, sortedListOfObj[0].density))
-for (let i = 0; i < sortedListOfObj.length; i++) {
-  sortedListOfObj[i]["rel_density"] = relativeDensity[i].toString()
-}
-console.log(formatToTable(sortedListOfObj, { gap: 5 }));
+const enrichedData = addRelativeProperty(sortedListOfObj, "density");
+console.log(formatToTable(enrichedData, { gap: 5 }));
