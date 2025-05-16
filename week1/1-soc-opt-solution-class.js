@@ -2,7 +2,7 @@
 
 import { formatToTable } from "./utils/renderer.js";
 import { parseCsv, csvToListOfObjects } from "./utils/csv.js";
-import { sortListOfObjectsBy } from "./utils/misc.js";
+import { sortListOfObjectsBy, addRelativeProperty } from "./utils/misc.js";
 
 const data = `city,population,area,density,country
   Shanghai,24256800,6340,3826,China
@@ -42,6 +42,11 @@ class Objects {
     return this;
   }
 
+  addRelativeProperty(property, options) {
+    this.objects = addRelativeProperty(this.objects, property, options);
+    return this
+  }
+
   toString(options = {}) {
     return formatToTable(this.objects, options);
   }
@@ -52,5 +57,5 @@ const csv = Csv.fromString(data);
 const csvObjs = new Objects(csv.toListOfObjects());
 const sortedObjs = csvObjs.sortBy("density", {
   order: "desc",
-});
+}).addRelativeProperty("density");
 console.log(sortedObjs.toString({ gap: 6 }));
