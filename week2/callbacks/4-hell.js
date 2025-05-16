@@ -1,18 +1,17 @@
-'use strict';
+"use strict";
 
 // Task: refactor callback hell code with named callbacks
 // Restriction: you can change code only in "Usage" section
 
-const getPurchase = (callback) => callback({
-  Electronics: [
-    { name: 'Laptop', price: 1500 },
-    { name: 'Keyboard', price: 100 },
-    { name: 'HDMI cable', price: 10 },
-  ],
-  Textile: [
-    { name: 'Bag', price: 50 },
-  ],
-});
+const getPurchase = (callback) =>
+  callback({
+    Electronics: [
+      { name: "Laptop", price: 1500 },
+      { name: "Keyboard", price: 100 },
+      { name: "HDMI cable", price: 10 },
+    ],
+    Textile: [{ name: "Bag", price: 50 }],
+  });
 
 const iterateGroups = (order, callback) => {
   for (const groupName in order) {

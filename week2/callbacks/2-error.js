@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: return an error for items with negative price
 // Hint: use callback-last-error-first contract
@@ -12,9 +12,9 @@ const total = (items, callback) => {
 };
 
 const electronics = [
-  { name: 'Laptop', price: -1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: -1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 total(electronics, (money) => {

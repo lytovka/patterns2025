@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: rewrite error handling to use callback-last-error-first
 // contract to return errors instead of throwing them.
@@ -13,17 +13,17 @@ const MAX_PURCHASE = 2000;
 const calculateSubtotal = (goods, callback) => {
   let amount = 0;
   for (const item of goods) {
-    if (typeof item.name !== 'string') {
-      callback(new Error('Noname in item in the bill'), null);
-      return
+    if (typeof item.name !== "string") {
+      callback(new Error("Noname in item in the bill"), null);
+      return;
     }
-    if (typeof item.price !== 'number') {
+    if (typeof item.price !== "number") {
       callback(new Error(`${item.name} price expected to be number`), null);
-      return
+      return;
     }
     if (item.price < 0) {
       callback(new Error(`Negative price for ${item.name}`), null);
-      return
+      return;
     }
     amount += item.price;
   }
@@ -34,7 +34,7 @@ const calculateTotal = (order, callback) => {
   const expenses = new Map();
   let total = 0;
   const calc = (groupName) => (error, amount) => {
-    if (error) return void callback(error, null)
+    if (error) return void callback(error, null);
     total += amount;
     expenses.set(groupName, amount);
   };
@@ -42,7 +42,7 @@ const calculateTotal = (order, callback) => {
     const goods = order[groupName];
     calculateSubtotal(goods, calc(groupName));
     if (total > MAX_PURCHASE) {
-      return void callback(new Error('Total is above the limit'), null);
+      return void callback(new Error("Total is above the limit"), null);
     }
   }
   callback(null, { total, expenses });
@@ -50,26 +50,21 @@ const calculateTotal = (order, callback) => {
 
 const purchase = {
   Electronics: [
-    { name: 'Laptop', price: 1500 },
-    { name: 'Keyboard', price: 100 },
-    { name: 'HDMI cable' },
+    { name: "Laptop", price: 1500 },
+    { name: "Keyboard", price: 100 },
+    { name: "HDMI cable" },
   ],
-  Textile: [
-    { name: 'Bag', price: 50 },
-    { price: 20 },
-  ],
+  Textile: [{ name: "Bag", price: 50 }, { price: 20 }],
 };
 
 console.log(purchase);
-const errors = []
+const errors = [];
 calculateTotal(purchase, (error, bill) => {
   if (error) {
-    errors.push(error)
-  }
-  else
-    console.log(bill);
+    errors.push(error);
+  } else console.log(bill);
 });
 
 if (errors.length > 0) {
-  console.log(AggregateError(errors))
+  console.log(AggregateError(errors));
 }

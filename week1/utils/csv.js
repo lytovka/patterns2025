@@ -1,7 +1,7 @@
 import { isNonEmptyArray, isObject } from "./misc.js";
 
 const getTrimmedLines = (csv) => csv.split("\n").map((l) => l.trim());
-const splitCsvRow = (row) => row.split(',')
+const splitCsvRow = (row) => row.split(",");
 
 export function fromString(data) {
   if (typeof data !== "string" || !data.trim()) {
@@ -9,10 +9,10 @@ export function fromString(data) {
   }
   const lines = getTrimmedLines(data);
   if (lines.length < 2) throw new Error("Invalid CSV format");
-  const [rawHeaders, ...rawContent] = lines
+  const [rawHeaders, ...rawContent] = lines;
   const headers = splitCsvRow(rawHeaders);
   const content = Array.from({ length: headers.length });
-  const maxElementsInRow = content.length
+  const maxElementsInRow = content.length;
   for (let i = 0; i < rawContent.length; i++) {
     content[i] = splitCsvRow(rawContent[i]).slice(0, maxElementsInRow);
   }

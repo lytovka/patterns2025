@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: change `iterate` contract from callbacks to Thenable
 
@@ -9,9 +9,9 @@ const iterate = (items, callback) => {
 };
 
 const electronics = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: 1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 // Use await syntax to get items

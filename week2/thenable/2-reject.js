@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: support rejection with an error after last item
 
@@ -15,9 +15,9 @@ const iterate = (items) => {
 };
 
 const electronics = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: 1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 (async () => {

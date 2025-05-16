@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: rewrite function to return result into sync callback
 
@@ -12,9 +12,9 @@ const total = (items) => {
 };
 
 const electronics = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: 1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 // Use new signature total(electronics, (money) => ...)

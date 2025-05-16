@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: rewrite `total` function to be async with JavaScript timers
 // Use `setInterval` and `clearInterval` to check next item each 1 second
@@ -25,7 +25,7 @@ const total = async (items) => {
       console.log({ check: { item } });
       if (item.price < 0) {
         clearInterval(interval);
-        return reject(new Error('Negative price is not allowed'));
+        return reject(new Error("Negative price is not allowed"));
       }
       result += item.price;
       index++;
@@ -34,19 +34,19 @@ const total = async (items) => {
         return resolve(result);
       }
     }, 1000);
-  })
+  });
 };
 
 const electronics = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: 1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 async function main() {
-  const promise1 = total(electronics)
-  const promise2 = total(electronics)
-  const [res1, res2] = await Promise.all([promise1, promise2])
+  const promise1 = total(electronics);
+  const promise2 = total(electronics);
+  const [res1, res2] = await Promise.all([promise1, promise2]);
   console.log({ money: res1 });
   console.log({ money: res2 });
 }

@@ -1,18 +1,17 @@
-'use strict';
+"use strict";
 
 // Task: refactor callback hell code with named callbacks
 // Restriction: you can change code only in "Usage" section
 
-const getPurchase = (callback) => callback({
-  Electronics: [
-    { name: 'Laptop', price: 1500 },
-    { name: 'Keyboard', price: 100 },
-    { name: 'HDMI cable', price: 10 },
-  ],
-  Textile: [
-    { name: 'Bag', price: 50 },
-  ],
-});
+const getPurchase = (callback) =>
+  callback({
+    Electronics: [
+      { name: "Laptop", price: 1500 },
+      { name: "Keyboard", price: 100 },
+      { name: "HDMI cable", price: 10 },
+    ],
+    Textile: [{ name: "Bag", price: 50 }],
+  });
 
 const iterateGroups = (order, callback) => {
   for (const groupName in order) {
@@ -50,23 +49,27 @@ const wallet = budget(1650);
 const checkSuccess = (state) => (success) => {
   if (success) state.amount += state.subtotal;
   wallet.rest((balance) => {
-    console.log({ success, amount: state.amount, subtotal: state.subtotal, balance });
+    console.log({
+      success,
+      amount: state.amount,
+      subtotal: state.subtotal,
+      balance,
+    });
   });
-}
+};
 
 const processSubtotal = (state) => (subtotal) => {
-  state.subtotal = subtotal
-  wallet.withdraw(subtotal, checkSuccess(state))
-}
+  state.subtotal = subtotal;
+  wallet.withdraw(subtotal, checkSuccess(state));
+};
 
 const processGroupTotal = (state) => (group) => {
-  groupTotal(group, processSubtotal(state))
-}
+  groupTotal(group, processSubtotal(state));
+};
 
 const processPurchase = (state) => (purchase) => {
   iterateGroups(purchase, processGroupTotal(state));
-}
+};
 
 let state = { amount: 0 };
 getPurchase(processPurchase(state));
-

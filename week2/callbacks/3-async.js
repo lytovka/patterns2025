@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: rewrite `total` function to be async with JavaScript timers
 // Use `setInterval` and `clearInterval` to check next item each 1 second
@@ -21,7 +21,7 @@ const total = (items, callback) => {
   for (const item of items) {
     console.log({ check: { item } });
     if (item.price < 0) {
-      callback(new Error('Negative price is not allowed'));
+      callback(new Error("Negative price is not allowed"));
       return;
     }
     result += item.price;
@@ -30,9 +30,9 @@ const total = (items, callback) => {
 };
 
 const electronics = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: 1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 total(electronics, (error, money) => {

@@ -16,17 +16,19 @@ const data = `city,population,area,density,country
   New York City,8537673,784,10892,United States
   Bangkok,8280925,1569,5279,Thailand`;
 
-
 function parseCsv(data) {
   const { headers, content } = fromString(data);
-  const getHeaders = () => headers
-  const getContent = () => content
+  const getHeaders = () => headers;
+  const getContent = () => content;
   return { getHeaders, getContent };
 }
 
 // main
 const csv = parseCsv(data);
-const listOfObj = csvToListOfObjects({ headers: csv.getHeaders(), content: csv.getContent() });
+const listOfObj = csvToListOfObjects({
+  headers: csv.getHeaders(),
+  content: csv.getContent(),
+});
 const sorted = sortListOfObjectsBy(listOfObj, "area", {
   order: "asc",
 });

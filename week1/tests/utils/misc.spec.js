@@ -109,16 +109,15 @@ describe("sortListOfObjectsBy", () => {
   });
 
   it("given valid array of objects, if property does not exist, should throw an error", () => {
-    assert.throws(
-      () =>
-        sortListOfObjectsBy(
-          [
-            { name: "Alice", age: 30 },
-            { name: "Bob", age: 25 },
-            { name: "Charlie", age: 35 },
-          ],
-          "height",
-        )
+    assert.throws(() =>
+      sortListOfObjectsBy(
+        [
+          { name: "Alice", age: 30 },
+          { name: "Bob", age: 25 },
+          { name: "Charlie", age: 35 },
+        ],
+        "height",
+      ),
     );
   });
 
@@ -156,19 +155,18 @@ describe("sortListOfObjectsBy", () => {
   });
 });
 
-
 describe("relative", () => {
   it("given invalid numbers, should return 0", () => {
-    const result = relative(NaN, null)
-    assert.equal(result, 0)
-  })
+    const result = relative(NaN, null);
+    assert.equal(result, 0);
+  });
 
   it("given 0 for whole, should throw exception", () => {
-    assert.throws(() => relative(100, 0))
-  })
+    assert.throws(() => relative(100, 0));
+  });
 
   it("given valid numbers, should calculate relative % of the first number", () => {
-    const result = relative(20, 200)
-    assert.equal(result, 10)
-  })
-})
+    const result = relative(20, 200);
+    assert.equal(result, 10);
+  });
+});
