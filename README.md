@@ -1,13 +1,13 @@
 # patterns2025
 
-Prerequisites
+## Prerequisites
 
 ```bash
 nvm use # lock node version from `.nvmrc`
 npm i
 ```
 
-Run the code
+## Run the code
 
 ```bash
 node week1/1-soc-opt.js # original
@@ -19,11 +19,7 @@ node week1/1-soc-opt-solution-class.js # oop
 node week1/1-soc-opt-solution-closure.js # closure
 ```
 
-```bash
-
-```
-
-Run tests
+## Run tests
 
 ```bash
 npm run test

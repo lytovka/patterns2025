@@ -8,7 +8,7 @@ import {
   maxLengthElement,
   sortListOfObjectsBy,
   relative,
-  addRelativeProperty
+  addRelativeProperty,
 } from "../../utils/misc.js";
 
 describe("isNonEmptyArray", () => {
@@ -173,60 +173,62 @@ describe("relative", () => {
 });
 
 describe("addRelativeProperty", () => {
-  it('given empty input, should return empty list', () => {
-    assert.deepEqual(addRelativeProperty([], 'density'), []);
-    assert.deepEqual(addRelativeProperty(null, 'density'), []);
-    assert.deepEqual(addRelativeProperty(undefined, 'density'), []);
+  it("given empty input, should return empty list", () => {
+    assert.deepEqual(addRelativeProperty([], "density"), []);
+    assert.deepEqual(addRelativeProperty(null, "density"), []);
+    assert.deepEqual(addRelativeProperty(undefined, "density"), []);
   });
 
-  it('given missing property, should return empty list', () => {
-    const cities = [{ city: 'Lagos', density: 100 }];
-    assert.deepEqual(addRelativeProperty(cities, ''), []);
+  it("given missing property, should return empty list", () => {
+    const cities = [{ city: "Lagos", density: 100 }];
+    assert.deepEqual(addRelativeProperty(cities, ""), []);
     assert.deepEqual(addRelativeProperty(cities, null), []);
     assert.deepEqual(addRelativeProperty(cities, undefined), []);
   });
 
-  it('given object and default arguments, expect new column to be added', () => {
+  it("given object and default arguments, expect new column to be added", () => {
     const cities = [
-      { city: 'Lagos', density: 13712 },
-      { city: 'Delhi', density: 11313 },
-      { city: 'Tokyo', density: 6168 }
+      { city: "Lagos", density: 13712 },
+      { city: "Delhi", density: 11313 },
+      { city: "Tokyo", density: 6168 },
     ];
 
-    const result = addRelativeProperty(cities, 'density');
+    const result = addRelativeProperty(cities, "density");
 
-    assert.equal(result[0].rel_density, '100');
-    assert.equal(result[1].rel_density, '83');
-    assert.equal(result[2].rel_density, '45');
+    assert.equal(result[0].rel_density, "100");
+    assert.equal(result[1].rel_density, "83");
+    assert.equal(result[2].rel_density, "45");
     assert.equal(result.length, 3);
     // Should not mutate original objects
     assert.notStrictEqual(result, cities);
   });
 
-  it('given custom target property name, expect new column to be added', () => {
+  it("given custom target property name, expect new column to be added", () => {
     const cities = [
-      { city: 'Lagos', density: 100 },
-      { city: 'Delhi', density: 50 }
+      { city: "Lagos", density: 100 },
+      { city: "Delhi", density: 50 },
     ];
 
-    const result = addRelativeProperty(cities, 'density', { targetProperty: 'densityPercent' });
+    const result = addRelativeProperty(cities, "density", {
+      targetProperty: "densityPercent",
+    });
 
-    assert.equal(result[0].densityPercent, '100');
-    assert.equal(result[1].densityPercent, '50');
+    assert.equal(result[0].densityPercent, "100");
+    assert.equal(result[1].densityPercent, "50");
     assert.equal(result[0].rel_density, undefined);
   });
 
-  it('given missing property, should fallback to 0', () => {
+  it("given missing property, should fallback to 0", () => {
     const cities = [
-      { city: 'Lagos', density: 100 },
-      { city: 'Delhi' },
-      { city: 'Tokyo', density: 50 }
+      { city: "Lagos", density: 100 },
+      { city: "Delhi" },
+      { city: "Tokyo", density: 50 },
     ];
 
-    const result = addRelativeProperty(cities, 'density');
+    const result = addRelativeProperty(cities, "density");
 
-    assert.equal(result[0].rel_density, '100');
-    assert.equal(result[1].rel_density, '0');
-    assert.equal(result[2].rel_density, '50');
+    assert.equal(result[0].rel_density, "100");
+    assert.equal(result[1].rel_density, "0");
+    assert.equal(result[2].rel_density, "50");
   });
-})
+});
