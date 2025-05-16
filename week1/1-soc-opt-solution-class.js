@@ -17,9 +17,20 @@ const data = `city,population,area,density,country
   Bangkok,8280925,1569,5279,Thailand`;
 
 class Csv {
+  #headers;
+  #content;
+
   constructor(headers, content) {
-    this.headers = headers;
-    this.content = content;
+    this.#headers = headers;
+    this.#content = content;
+  }
+
+  get headers() {
+    return this.#headers;
+  }
+
+  get content() {
+    return this.#content;
   }
 
   toListOfObjects() {
@@ -32,30 +43,39 @@ class Csv {
   }
 }
 
-class Objects {
+class DataProcessor {
+  #objects;
+
   constructor(objects) {
-    this.objects = objects;
+    this.#objects = objects;
+  }
+
+  get objects() {
+    return this.#objects;
   }
 
   sortBy(property, options) {
-    this.objects = sortListOfObjectsBy(this.objects, property, options);
+    this.#objects = sortListOfObjectsBy(this.#objects, property, options);
     return this;
   }
 
   addRelativeProperty(property, options) {
-    this.objects = addRelativeProperty(this.objects, property, options);
-    return this
+    this.#objects = addRelativeProperty(this.#objects, property, options);
+    return this;
   }
+}
 
-  toString(options = {}) {
-    return formatToTable(this.objects, options);
+class TableRenderer {
+  static toString(objects, options = {}) {
+    return formatToTable(objects, options);
   }
 }
 
 // main
 const csv = Csv.fromString(data);
-const csvObjs = new Objects(csv.toListOfObjects());
-const sortedObjs = csvObjs.sortBy("density", {
-  order: "desc",
-}).addRelativeProperty("density");
-console.log(sortedObjs.toString({ gap: 6 }));
+const processor = new DataProcessor(csv.toListOfObjects())
+  .sortBy("density", {
+    order: "desc",
+  })
+  .addRelativeProperty("density");
+console.log(TableRenderer.toString(processor.objects, { gap: 3 }));
