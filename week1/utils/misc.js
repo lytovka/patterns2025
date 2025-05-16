@@ -39,9 +39,8 @@ export function sortListOfObjectsBy(
   const { order } = options;
   const isPropertyExist = objs.some((entry) => Object.hasOwn(entry, property));
   if (!isPropertyExist) throw new Error(`Unknown property '${property}'`);
-  return objs.sort(
-    (r1, r2) => (r1[property] - r2[property]) * (order === "asc" ? 1 : -1),
-  );
+  const or = order === "asc" ? 1 : -1;
+  return objs.sort((r1, r2) => (r1[property] - r2[property]) * or);
 }
 
 export function addRelativeProperty(objects, property, options = {}) {

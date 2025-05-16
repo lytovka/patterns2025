@@ -19,6 +19,7 @@ const data = `city,population,area,density,country
 function createDataProcessor(data) {
   let csv = parseCsv(data);
   let objects = csvToListOfObjects(csv);
+  const api = {};
 
   const sortBy = (property, options = { order: "desc" }) => {
     objects = sortListOfObjectsBy(objects, property, options);
@@ -32,13 +33,11 @@ function createDataProcessor(data) {
 
   const render = (options = {}) => formatToTable(objects, options);
 
-  const api = {
+  return Object.assign(api, {
     sortBy,
     addRelative,
     render,
-  };
-
-  return api;
+  });
 }
 
 // main

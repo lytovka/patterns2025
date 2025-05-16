@@ -63,11 +63,9 @@ class DataProcessor {
     this.#objects = addRelativeProperty(this.#objects, property, options);
     return this;
   }
-}
 
-class TableRenderer {
-  static toString(objects, options = {}) {
-    return formatToTable(objects, options);
+  toString(options = {}) {
+    return formatToTable(this.#objects, options);
   }
 }
 
@@ -78,4 +76,4 @@ const processor = new DataProcessor(csv.toListOfObjects())
     order: "desc",
   })
   .addRelativeProperty("density");
-console.log(TableRenderer.toString(processor.objects, { gap: 3 }));
+console.log(processor.toString({ gap: 3 }));

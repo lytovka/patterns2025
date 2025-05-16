@@ -23,4 +23,4 @@ const sortedListOfObj = sortListOfObjectsBy(listOfObj, "density", {
   order: "desc",
 });
 const enrichedData = addRelativeProperty(sortedListOfObj, "density");
-console.log(formatToTable(enrichedData, { gap: 5 }));
+console.log(formatToTable(enrichedData, { gap: 2 }));
