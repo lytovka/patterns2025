@@ -1,8 +1,8 @@
 "use strict";
 
 import { formatToTable } from "./utils/renderer.js";
-import { csvToListOfObjects, fromString } from "./utils/csv.js";
-import { sortListOfObjectsBy } from "./utils/misc.js";
+import { csvToListOfObjects, parseCsv } from "./utils/csv.js";
+import { sortListOfObjectsBy, addRelativeProperty } from "./utils/misc.js";
 
 const data = `city,population,area,density,country
   Shanghai,24256800,6340,3826,China
@@ -16,20 +16,33 @@ const data = `city,population,area,density,country
   New York City,8537673,784,10892,United States
   Bangkok,8280925,1569,5279,Thailand`;
 
-function parseCsv(data) {
-  const { headers, content } = fromString(data);
-  const getHeaders = () => headers;
-  const getContent = () => content;
-  return { getHeaders, getContent };
+function createDataProcessor(data) {
+  let csv = parseCsv(data);
+  let objects = csvToListOfObjects(csv);
+
+  const sortBy = (property, options = { order: "desc" }) => {
+    objects = sortListOfObjectsBy(objects, property, options);
+    return api;
+  };
+
+  const addRelative = (property, options = {}) => {
+    objects = addRelativeProperty(objects, property, options);
+    return api;
+  };
+
+  const render = (options = {}) => formatToTable(objects, options);
+
+  const api = {
+    sortBy,
+    addRelative,
+    render,
+  };
+
+  return api;
 }
 
 // main
-const csv = parseCsv(data);
-const listOfObj = csvToListOfObjects({
-  headers: csv.getHeaders(),
-  content: csv.getContent(),
-});
-const sorted = sortListOfObjectsBy(listOfObj, "area", {
-  order: "asc",
-});
-console.log(formatToTable(sorted, { gap: 6 }));
+const cityData = createDataProcessor(data)
+  .sortBy("density")
+  .addRelative("density");
+console.log(cityData.render({ gap: 3 }));
