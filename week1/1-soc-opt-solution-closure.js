@@ -2,25 +2,24 @@
 
 import data from "./data.js"
 import { formatToTable } from "./utils/renderer.js";
-import { csvToListOfObjects, parseCsv } from "./utils/csv.js";
+import { parseCsv } from "./utils/csv.js";
 import { sortListOfObjectsBy, addRelativeProperty } from "./utils/misc.js";
 
 function createDataProcessor(data) {
   let csv = parseCsv(data);
-  let objects = csvToListOfObjects(csv);
   const api = {};
 
   const sortBy = (property, options = { order: "desc" }) => {
-    objects = sortListOfObjectsBy(objects, property, options);
+    csv = sortListOfObjectsBy(csv, property, options);
     return api;
   };
 
   const addRelative = (property, options = {}) => {
-    objects = addRelativeProperty(objects, property, options);
+    csv = addRelativeProperty(csv, property, options);
     return api;
   };
 
-  const render = (options = {}) => formatToTable(objects, options);
+  const render = (options = {}) => formatToTable(csv, options);
 
   return Object.assign(api, {
     sortBy,

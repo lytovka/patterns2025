@@ -2,12 +2,11 @@
 
 import data from "./data.js";
 import { formatToTable } from "./utils/renderer.js";
-import { parseCsv, csvToListOfObjects } from "./utils/csv.js";
+import { parseCsv } from "./utils/csv.js";
 import { sortListOfObjectsBy, addRelativeProperty } from "./utils/misc.js";
 
 // main
-const csv = parseCsv(data);
-const listOfObj = csvToListOfObjects(csv);
+const listOfObj = parseCsv(data);
 const sortedListOfObj = sortListOfObjectsBy(listOfObj, "density", {
   order: "desc",
 });

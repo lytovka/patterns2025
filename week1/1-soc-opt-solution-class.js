@@ -2,33 +2,22 @@
 
 import data from "./data.js"
 import { formatToTable } from "./utils/renderer.js";
-import { parseCsv, csvToListOfObjects } from "./utils/csv.js";
+import { parseCsv } from "./utils/csv.js";
 import { sortListOfObjectsBy, addRelativeProperty } from "./utils/misc.js";
 
 class Csv {
-  #headers;
-  #content;
+  #objects;
 
-  constructor(headers, content) {
-    this.#headers = headers;
-    this.#content = content;
+  constructor(objects) {
+    this.#objects = objects
   }
 
-  get headers() {
-    return this.#headers;
-  }
-
-  get content() {
-    return this.#content;
-  }
-
-  toListOfObjects() {
-    return csvToListOfObjects(this);
+  get objects() {
+    return this.#objects;
   }
 
   static fromString(csvString) {
-    const { headers, content } = parseCsv(csvString);
-    return new Csv(headers, content);
+    return new Csv(parseCsv(csvString));
   }
 }
 
@@ -60,7 +49,7 @@ class DataProcessor {
 
 // main
 const csv = Csv.fromString(data);
-const processor = new DataProcessor(csv.toListOfObjects())
+const processor = new DataProcessor(csv.objects)
   .sortBy("density", {
     order: "desc",
   })
