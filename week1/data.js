@@ -8,4 +8,4 @@ export default `city,population,area,density,country
   Mexico City,8874724,1486,5974,Mexico
   London,8673713,1572,5431,United Kingdom
   New York City,8537673,784,10892,United States
-  Bangkok,8280925,1569,5279,Thailand`
+  Bangkok,8280925,1569,5279,Thailand`;

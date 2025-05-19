@@ -1,6 +1,6 @@
 "use strict";
 
-import data from "./data.js"
+import data from "./data.js";
 import { formatToTable } from "./utils/renderer.js";
 import { parseCsv } from "./utils/csv.js";
 import { sortListOfObjectsBy, addRelativeProperty } from "./utils/misc.js";
@@ -9,7 +9,7 @@ class Csv {
   #objects;
 
   constructor(objects) {
-    this.#objects = objects
+    this.#objects = objects;
   }
 
   get objects() {
