@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Create Iterator for given dataset with Symbol.asyncIterator
 // Use for..of to iterate it and pass data to Basket
@@ -8,44 +8,41 @@
 // escalated errors
 
 const purchase = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Mouse', price: 25 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
-  { name: 'Bag', price: 50 },
-  { name: 'Mouse pad', price: 5 },
+  { name: "Laptop", price: 1500 },
+  { name: "Mouse", price: 25 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
+  { name: "Bag", price: 50 },
+  { name: "Mouse pad", price: 5 },
 ];
 
 class PurchaseIterator {
   #purchase;
 
   constructor(purchase) {
-    if (!Array.isArray(purchase)) throw new Error("Must inherit Array.prototype")
+    if (!Array.isArray(purchase))
+      throw new Error("Must inherit Array.prototype");
     this.#purchase = purchase;
   }
 
   static create(purchase) {
-    return new PurchaseIterator(purchase)
+    return new PurchaseIterator(purchase);
   }
 
   [Symbol.asyncIterator]() {
     let i = 0;
-    let max = this.#purchase.length
-    const getCurrentPurchase = (i) => this.#purchase[i]
+    let max = this.#purchase.length;
+    const getCurrentPurchase = (i) => this.#purchase[i];
     return {
       async next() {
         const item = {
           value: getCurrentPurchase(i),
-          done: i >= max
-        }
-        i++
-        return item
+          done: i >= max,
+        };
+        i++;
+        return item;
       },
-      // optional
-      throw(err) {
-        console.error(err)
-      }
-    }
+    };
   }
 }
 
@@ -53,55 +50,52 @@ class Basket {
   #properties;
   #callback;
   #data = [];
-  #shouldReject = false;
+  #currentBalance = 0;
 
   constructor(properties, callback) {
     this.#properties = properties;
-    this.#callback = callback
+    this.#callback = callback;
   }
 
-  async add(item) {
-    console.log("curr balance", this.getCurrentBalance(), this.#properties.limit, this.getCurrentBalance() + item.price > this.#properties.limit)
-    if (this.getCurrentBalance() + item.price > this.#properties.limit) {
-      this.#shouldReject = true
-      return this.then()
-    }
-    this.#data.push(item)
-    return this
+  add(item) {
+    this.#data.push(item);
+    this.#currentBalance += item.price;
+    return this;
   }
 
   getCurrentBalance() {
-    return this.#data.reduce((prev, curr) => prev + curr.price, 0)
+    return this.#currentBalance;
   }
 
-  [Symbol.iterator]() {
-    return this.#data[Symbol.iterator]()
+  isExceedLimit() {
+    return this.getCurrentBalance() > this.#properties.limit;
   }
 
   then() {
-    console.log("then", this.#shouldReject)
-    const curr = this.getCurrentBalance()
-    if (this.#shouldReject) {
-      this.#callback(new Error('Limit exceeded'), this.#data, curr)
-    }
-    else this.#callback(null, this.#data, curr)
+    if (this.isExceedLimit()) {
+      this.#callback(
+        new Error("Limit exceeded"),
+        this.#data,
+        this.getCurrentBalance(),
+      );
+    } else this.#callback(null, this.#data, this.getCurrentBalance());
   }
-
 }
+
+const basketCallback = (error, items, total) => {
+  if (error) {
+    console.error(error, "\n", items, "\n", total);
+  } else console.log(items, "\n", total);
+};
 
 const main = async () => {
   const goods = PurchaseIterator.create(purchase);
-  const basket = new Basket({ limit: 1250 }, (error, items, total) => {
-    if (error) {
-      console.error(error, "\n", items, "\n", total)
-    }
-    else
-      console.log(total);
-  });
+  const basket = new Basket({ limit: 1250 }, basketCallback);
   for await (const item of goods) {
     basket.add(item);
   }
-  await basket
+  // return thenable
+  await basket;
 };
 
 main();
