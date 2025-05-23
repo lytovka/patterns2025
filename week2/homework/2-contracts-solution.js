@@ -34,7 +34,7 @@ class PurchaseIterator {
     let max = this.#purchase.length;
     const getCurrentPurchase = (i) => this.#purchase[i];
     return {
-      async next() {
+      next() {
         const item = {
           value: getCurrentPurchase(i),
           done: i >= max,
@@ -42,13 +42,6 @@ class PurchaseIterator {
         i++;
         return item;
       },
-      return(value) {
-        console.log("finished iterating", value)
-        return {
-          value,
-          done: true
-        }
-      }
     };
   }
 }
