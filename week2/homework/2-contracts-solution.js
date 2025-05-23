@@ -40,18 +40,25 @@ class PurchaseIterator {
           done: i >= max,
         };
         i++;
-        return item;
+        return Promise.resolve(item);
       },
     };
   }
 }
 
+const noop = () => { }
+
 class Basket {
   #properties
   #data = [];
+  #onfulfill;
+  #onreject;
+  #isResolved = false
 
   constructor(properties) {
     this.#properties = properties;
+    this.#onreject = noop
+    this.#onfulfill = noop
   }
 
   add(item) {
@@ -59,35 +66,47 @@ class Basket {
     return this;
   }
 
-  async checkout() {
-    return new Promise((resolve, reject) => {
-      let totalPrice = 0;
-      let currentPrice = 0;
-      let canBuy = [];
-      let cannotBuy = [];
-      let max = this.#properties.limit
+  then(onfulfill, onreject) {
+    // TODO: do not overwrite callbacks
+    if (this.#isResolved) return
+    this.#onfulfill = onfulfill
+    this.#onreject = onreject
+  }
 
-      for (let i = 0; i < this.#data.length; i++) {
-        if (currentPrice + this.#data[i].price <= max) {
-          canBuy.push(this.#data[i])
-          currentPrice += this.#data[i].price
-        }
-        else cannotBuy.push(this.#data[i])
-        totalPrice += this.#data[i].price
+  checkout() {
+    let totalPrice = 0;
+    let currentPrice = 0;
+    let canBuy = [];
+    let cannotBuy = [];
+    let max = this.#properties.limit
+
+    for (let i = 0; i < this.#data.length; i++) {
+      if (currentPrice + this.#data[i].price <= max) {
+        canBuy.push(this.#data[i])
+        currentPrice += this.#data[i].price
       }
-      if (canBuy.length === 0) reject(new Error("Cannot buy any of the items due to insufficient limit " + max))
-      resolve({ totalPrice, currentPrice, canBuy, cannotBuy, limit: max })
-    })
+      else cannotBuy.push(this.#data[i])
+      totalPrice += this.#data[i].price
+    }
+    if (canBuy.length === 0) {
+      this.#onreject(new Error("Cannot buy any of the items due to insufficient limit " + max))
+    }
+    else {
+      this.#onfulfill({ totalPrice, currentPrice, canBuy, cannotBuy, limit: max })
+    }
+    this.#isResolved = true
   }
 }
 
 const main = async () => {
   const goods = PurchaseIterator.create(purchase);
-  const basket = new Basket({ limit: 1250 });
+  const basket = new Basket({ limit: 1000 });
   for await (const item of goods) {
     basket.add(item);
   }
-  await basket.checkout().then(data => console.log(data)).catch(err => console.log(err));
+  basket.then(data => console.log(data), console.error)
+  // basket.then(data => console.log("overwritten", data), console.error)
+  basket.checkout()
 };
 
 main();
