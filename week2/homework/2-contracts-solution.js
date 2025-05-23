@@ -42,60 +42,59 @@ class PurchaseIterator {
         i++;
         return item;
       },
+      return(value) {
+        console.log("finished iterating", value)
+        return {
+          value,
+          done: true
+        }
+      }
     };
   }
 }
 
 class Basket {
-  #properties;
-  #callback;
+  #properties
   #data = [];
-  #currentBalance = 0;
 
-  constructor(properties, callback) {
+  constructor(properties) {
     this.#properties = properties;
-    this.#callback = callback;
   }
 
   add(item) {
     this.#data.push(item);
-    this.#currentBalance += item.price;
     return this;
   }
 
-  getCurrentBalance() {
-    return this.#currentBalance;
-  }
+  async checkout() {
+    return new Promise((resolve, reject) => {
+      let totalPrice = 0;
+      let currentPrice = 0;
+      let canBuy = [];
+      let cannotBuy = [];
+      let max = this.#properties.limit
 
-  isExceedLimit() {
-    return this.getCurrentBalance() > this.#properties.limit;
-  }
-
-  then() {
-    if (this.isExceedLimit()) {
-      this.#callback(
-        new Error("Limit exceeded"),
-        this.#data,
-        this.getCurrentBalance(),
-      );
-    } else this.#callback(null, this.#data, this.getCurrentBalance());
+      for (let i = 0; i < this.#data.length; i++) {
+        if (currentPrice + this.#data[i].price <= max) {
+          canBuy.push(this.#data[i])
+          currentPrice += this.#data[i].price
+        }
+        else cannotBuy.push(this.#data[i])
+        totalPrice += this.#data[i].price
+      }
+      if (canBuy.length === 0) reject(new Error("Cannot buy any of the items due to insufficient limit " + max))
+      resolve({ totalPrice, currentPrice, canBuy, cannotBuy, limit: max })
+    })
   }
 }
 
-const basketCallback = (error, items, total) => {
-  if (error) {
-    console.error(error, "\n", items, "\n", total);
-  } else console.log(items, "\n", total);
-};
-
 const main = async () => {
   const goods = PurchaseIterator.create(purchase);
-  const basket = new Basket({ limit: 1250 }, basketCallback);
+  const basket = new Basket({ limit: 1250 });
   for await (const item of goods) {
     basket.add(item);
   }
-  // return thenable
-  await basket;
+  await basket.checkout().then(data => console.log(data)).catch(err => console.log(err));
 };
 
 main();
