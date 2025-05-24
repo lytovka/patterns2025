@@ -40,9 +40,8 @@ class PurchaseIterator {
           value: getCurrentPurchase(i),
           done: i >= max,
         };
-        console.log("fetching item ", i)
         i++;
-        await scheduler.wait(200)
+        await scheduler.wait(100)
         return item;
       },
     };
@@ -56,7 +55,6 @@ class Basket {
   #data = [];
   #onfulfill;
   #onreject;
-  #isResolved = false
 
   constructor(properties) {
     this.#properties = properties;
@@ -70,8 +68,7 @@ class Basket {
   }
 
   then(onfulfill, onreject) {
-    // TODO: do not overwrite callbacks
-    if (this.#isResolved) return
+    if (this.#onfulfill !== noop) return
     this.#onfulfill = onfulfill
     this.#onreject = onreject
   }
@@ -97,18 +94,17 @@ class Basket {
     else {
       this.#onfulfill({ totalPrice, currentPrice, canBuy, cannotBuy, limit: max })
     }
-    this.#isResolved = true
   }
 }
 
 const main = async () => {
   const goods = PurchaseIterator.create(purchase);
-  const basket = new Basket({ limit: 1000 });
+  const basket = new Basket({ limit: 100 });
   for await (const item of goods) {
     basket.add(item);
   }
   basket.then(data => console.log(data), console.error)
-  // basket.then(data => console.log("overwritten", data), console.error)
+  basket.then(data => console.log("overwritten", data), console.error) // the followup then() will be ignored
   basket.checkout()
 };
 
