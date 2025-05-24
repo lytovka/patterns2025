@@ -1,4 +1,5 @@
 "use strict";
+import { scheduler } from 'node:timers/promises';
 
 // Create Iterator for given dataset with Symbol.asyncIterator
 // Use for..of to iterate it and pass data to Basket
@@ -34,13 +35,15 @@ class PurchaseIterator {
     let max = this.#purchase.length;
     const getCurrentPurchase = (i) => this.#purchase[i];
     return {
-      next() {
+      async next() {
         const item = {
           value: getCurrentPurchase(i),
           done: i >= max,
         };
+        console.log("fetching item ", i)
         i++;
-        return Promise.resolve(item);
+        await scheduler.wait(200)
+        return item;
       },
     };
   }
