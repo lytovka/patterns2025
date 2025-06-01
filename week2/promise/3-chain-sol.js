@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: here is given code you can't touch but you need to
 // write solution below to sum given prices (wrapped in promises).
@@ -13,9 +13,9 @@ const CURRENCY_RATE = 1.09;
 const convert = ({ price }) => Promise.resolve(price * CURRENCY_RATE);
 
 const electronics = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: 1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 const prices = electronics.map(convert);
@@ -27,8 +27,12 @@ const sum = (a, b) => a + b;
 // Write solution below
 
 async function main() {
-  const resolvedPrices = await Promise.all(prices)
-  console.log(resolvedPrices.map(formatMoney).reduce((prev, current) => sum(prev, current), 0))
+  const resolvedPrices = await Promise.all(prices);
+  console.log(
+    resolvedPrices
+      .map(formatMoney)
+      .reduce((prev, current) => sum(prev, current), 0),
+  );
 }
 
-main()
+main();

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: create Promise-returning adapter function `totalAsync`
 // Do not change function `total` contract, just call `total` from
@@ -9,7 +9,7 @@ const total = (items, callback) => {
   let result = 0;
   for (const item of items) {
     if (item.price < 0) {
-      callback(new Error('Negative price is not allowed'));
+      callback(new Error("Negative price is not allowed"));
       return;
     }
     result += item.price;
@@ -19,26 +19,28 @@ const total = (items, callback) => {
 
 // const totalAsync = (items) => new Promise...
 
-const totalAsync = (items) => new Promise((resolve, reject) => {
-  return total(items, (err, result) => {
-    if (err) reject(err)
-    else resolve(result)
-  })
-})
+const totalAsync = (items) =>
+  new Promise((resolve, reject) => {
+    return total(items, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
 
 const electronics = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: 1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 async function main() {
-  await totalAsync(electronics).then(money => {
-    console.log({ money });
-  })
-    .catch(err => {
-      console.error(err)
+  await totalAsync(electronics)
+    .then((money) => {
+      console.log({ money });
     })
+    .catch((err) => {
+      console.error(err);
+    });
 }
 
-main()
+main();

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: support rejection with an error, if no more items in
 // `items` array are available to return with `.next()`
@@ -13,15 +13,15 @@ const iterate = (items) => {
         if (index < items.length) {
           return fulfill(items[index++]);
         }
-        throw new Error('No more items to iterate');
+        throw new Error("No more items to iterate");
       }),
   };
 };
 
 const electronics = [
-  { name: 'Laptop', price: 1500 },
-  { name: 'Keyboard', price: 100 },
-  { name: 'HDMI cable', price: 10 },
+  { name: "Laptop", price: 1500 },
+  { name: "Keyboard", price: 100 },
+  { name: "HDMI cable", price: 10 },
 ];
 
 const main = async () => {
@@ -36,7 +36,7 @@ const main = async () => {
     const item4 = await items.next();
     console.log(item4);
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 };
 
