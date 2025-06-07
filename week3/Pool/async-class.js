@@ -48,30 +48,31 @@ class Poolify {
     });
   }
 
-  acquire(callback) {
+  #acquire(callback) {
     if (this.availableInstances === 0) {
       this.queue.push(callback);
       return;
     }
     let currInstance = null;
+    let currIndex = this.currentIndex
     let isFree = false;
     while (!currInstance || !isFree) {
-      currInstance = this.instances[this.currentIndex];
+      currIndex = this.currentIndex
+      currInstance = this.instances[currIndex];
       isFree = this.freeInstances[this.currentIndex];
       this.currentIndex++;
       if (this.currentIndex > this.maxSize - 1) this.currentIndex = 0;
     }
-    return currInstance;
+    return { currInstance, currIndex };
   }
 
   capture(callback) {
-    const instance = this.acquire(callback);
-    if (!instance)
+    const { currInstance, currIndex } = this.#acquire(callback);
+    if (!currInstance)
       return callback(new PoolError("no free instances found"), null);
-    const index = this.instances.indexOf(instance);
-    this.freeInstances[index] = false;
+    this.freeInstances[currIndex] = false;
     this.availableInstances--;
-    return callback(null, instance);
+    return callback(null, currInstance);
   }
 
   release(instance, callback) {
