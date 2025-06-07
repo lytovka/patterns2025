@@ -9,31 +9,19 @@ export function parseCsv(data) {
   }
   const lines = getTrimmedLines(data);
   if (lines.length < 2) throw new Error("Invalid CSV format");
-  const [rawHeaders, ...rawContent] = lines;
-  const headers = splitCsvRow(rawHeaders);
-  const content = Array.from({ length: headers.length });
-  const maxElementsInRow = content.length;
-  for (let i = 0; i < rawContent.length; i++) {
-    content[i] = splitCsvRow(rawContent[i]).slice(0, maxElementsInRow);
-  }
-  return { headers, content };
-}
 
-export function csvToListOfObjects(csv) {
-  if (!isObject(csv)) {
-    throw new Error("CSV must be an object");
-  }
-  const { headers, content } = csv;
-  if (!isNonEmptyArray(headers) || !isNonEmptyArray(content)) {
-    throw new Error("Both headers and columns must be arrays");
-  }
-  const result = [];
-  for (let i = 0; i < content.length; i++) {
+  const headers = splitCsvRow(lines[0]);
+  const content = Array.from({ length: headers.length });
+
+  for (let i = 1; i < lines.length; i++) {
+    const rowValues = splitCsvRow(lines[i]);
+    const maxElInRow = Math.min(headers.length, rowValues.length);
     const obj = {};
-    for (let j = 0; j < content[i].length; j++) {
-      obj[headers[j]] = content[i][j] ?? null;
+    // Iterate up to the header's length and disregard leftover elements
+    for (let j = 0; j < maxElInRow; j++) {
+      obj[headers[j]] = rowValues[j] || null;
     }
-    result.push(obj);
+    content[i - 1] = obj;
   }
-  return result;
+  return content;
 }
