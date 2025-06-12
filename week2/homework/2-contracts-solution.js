@@ -1,5 +1,5 @@
 "use strict";
-import { scheduler } from 'node:timers/promises';
+import { scheduler } from "node:timers/promises";
 
 // Create Iterator for given dataset with Symbol.asyncIterator
 // Use for..of to iterate it and pass data to Basket
@@ -41,25 +41,25 @@ class PurchaseIterator {
           done: i >= max,
         };
         i++;
-        await scheduler.wait(100)
+        await scheduler.wait(100);
         return item;
       },
     };
   }
 }
 
-const noop = () => { }
+const noop = () => {};
 
 class Basket {
-  #properties
+  #properties;
   #data = [];
   #onfulfill;
   #onreject;
 
   constructor(properties) {
     this.#properties = properties;
-    this.#onreject = noop
-    this.#onfulfill = noop
+    this.#onreject = noop;
+    this.#onfulfill = noop;
   }
 
   add(item) {
@@ -68,9 +68,9 @@ class Basket {
   }
 
   then(onfulfill, onreject) {
-    if (this.#onfulfill !== noop) return
-    this.#onfulfill = onfulfill
-    this.#onreject = onreject
+    if (this.#onfulfill !== noop) return;
+    this.#onfulfill = onfulfill;
+    this.#onreject = onreject;
   }
 
   checkout() {
@@ -78,21 +78,29 @@ class Basket {
     let currentPrice = 0;
     let canBuy = [];
     let cannotBuy = [];
-    let max = this.#properties.limit
+    let max = this.#properties.limit;
 
     for (let i = 0; i < this.#data.length; i++) {
       if (currentPrice + this.#data[i].price <= max) {
-        canBuy.push(this.#data[i])
-        currentPrice += this.#data[i].price
-      }
-      else cannotBuy.push(this.#data[i])
-      totalPrice += this.#data[i].price
+        canBuy.push(this.#data[i]);
+        currentPrice += this.#data[i].price;
+      } else cannotBuy.push(this.#data[i]);
+      totalPrice += this.#data[i].price;
     }
     if (canBuy.length === 0) {
-      this.#onreject(new Error("Cannot buy any of the items due to insufficient limit " + max))
-    }
-    else {
-      this.#onfulfill({ totalPrice, currentPrice, canBuy, cannotBuy, limit: max })
+      this.#onreject(
+        new Error(
+          "Cannot buy any of the items due to insufficient limit " + max,
+        ),
+      );
+    } else {
+      this.#onfulfill({
+        totalPrice,
+        currentPrice,
+        canBuy,
+        cannotBuy,
+        limit: max,
+      });
     }
   }
 }
@@ -103,9 +111,9 @@ const main = async () => {
   for await (const item of goods) {
     basket.add(item);
   }
-  basket.then(data => console.log(data), console.error)
-  basket.then(data => console.log("overwritten", data), console.error) // the followup then() will be ignored
-  basket.checkout()
+  basket.then((data) => console.log(data), console.error);
+  basket.then((data) => console.log("overwritten", data), console.error); // the followup then() will be ignored
+  basket.checkout();
 };
 
 main();
