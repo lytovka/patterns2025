@@ -6,25 +6,31 @@ import fs from 'node:fs';
 // replacing the callback).
 
 const promisify = (fn, options) => (...args) => {
-  const timeout = options.timeout || 1000
+  const timeout = options.timeout ?? 1000
+  let isExpired = false
+  // todo: try Promise.withResolvers(...)
   const promise = new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
+    let timer = setTimeout(() => {
+      if (isExpired) return
       reject(new Error("Timeout to resolve exceeded"))
-      return
+      timer = null
     }, timeout)
     const callback = (err, data) => {
+      if (isExpired) return
+      if (timer) clearTimeout(timer)
       if (err) reject(err);
       else resolve(data);
-      clearTimeout(timeoutId)
     };
     fn(...args, callback);
   });
-  return promise;
+  return promise.finally(() => {
+    isExpired = true
+  });
 };
 
 // Usage
 
-const read = promisify(fs.readFile, { timeout: 1 });
+const read = promisify(fs.readFile, { timeout: 5 });
 
 const main = async () => {
   const fileName = '1-promisify-solution.js';
