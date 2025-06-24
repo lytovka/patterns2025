@@ -6,20 +6,15 @@ import fs from 'node:fs';
 // Hint: Create `AbortController` or `AbortSignal` in the usage section.
 
 const promisify = (fn, options) => (...args) => {
-  const timeout = options.timeout || 1000
-  const controller = options.controller
+  const { timeout = 1000, signal: externalSignal } = options
+  const timer = AbortSignal.timeout(timeout)
+  const signal = AbortSignal.any([timer, externalSignal])
   const promise = new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      controller.abort("Timeout exceeded")
-    }, timeout)
-
-    controller.signal.addEventListener('abort', () => {
-      clearTimeout(timeoutId);
-      reject(new Error(controller.signal.reason));
+    signal.addEventListener('abort', () => {
+      reject(new Error("timeout exceeded"));
     });
 
     const callback = (err, data) => {
-      clearTimeout(timeoutId)
       if (err) reject(err);
       else resolve(data);
     };
@@ -29,8 +24,7 @@ const promisify = (fn, options) => (...args) => {
 };
 
 // Usage
-const controller = new AbortController()
-const read = promisify(fs.readFile, { timeout: 1, controller });
+const read = promisify(fs.readFile, { timeout: 100, signal: AbortSignal.timeout(1) });
 
 const main = async () => {
   const fileName = '2-abort-solution.js';
