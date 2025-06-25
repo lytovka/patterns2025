@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: refactor `Timer` to make the event name configurable
 // (e.g., 'step' in the example) and not hardcoded into the `Timer`.
@@ -12,7 +12,7 @@ class Timer extends EventTarget {
     setInterval(() => {
       const step = this.#counter++;
       const data = { detail: { step } };
-      const event = new CustomEvent('step', data);
+      const event = new CustomEvent("step", data);
       this.dispatchEvent(event);
     }, delay);
   }
@@ -22,6 +22,6 @@ class Timer extends EventTarget {
 
 const timer = new Timer(1000);
 
-timer.addEventListener('step', (event) => {
+timer.addEventListener("step", (event) => {
   console.log({ event, detail: event.detail });
 });

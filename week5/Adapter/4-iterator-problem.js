@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Task: ensure all blocks of code in the usage section iterate in parallel.
 // Currently, only the last block (of 3) works. Fix this issue so that
@@ -21,9 +21,10 @@ class Timer {
   }
 
   [Symbol.asyncIterator]() {
-    const next = () => new Promise((resolve) => {
-      this.#resolve = resolve;
-    });
+    const next = () =>
+      new Promise((resolve) => {
+        this.#resolve = resolve;
+      });
     const iterator = { next };
     return iterator;
   }
@@ -35,14 +36,14 @@ const main = async () => {
   const timer = new Timer(1000);
 
   (async () => {
-    console.log('Section 1 start');
+    console.log("Section 1 start");
     for await (const step of timer) {
       console.log({ section: 1, step });
     }
   })();
 
   (async () => {
-    console.log('Section 2 start');
+    console.log("Section 2 start");
     const iter = timer[Symbol.asyncIterator]();
     do {
       const { value, done } = await iter.next();
@@ -51,7 +52,7 @@ const main = async () => {
   })();
 
   (async () => {
-    console.log('Section 3 start');
+    console.log("Section 3 start");
     const iter = timer[Symbol.asyncIterator]();
     do {
       const { value, done } = await iter.next();
