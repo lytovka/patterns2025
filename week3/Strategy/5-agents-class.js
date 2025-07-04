@@ -1,10 +1,10 @@
 'use strict';
 
 class StrategyError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'StrategyError';
-    }
+  constructor(message) {
+    super(message);
+    this.name = 'StrategyError';
+  }
 }
 
 class Strategy {
@@ -17,29 +17,33 @@ class Strategy {
     this.#actions = actions
   }
 
-  registerBehavior(implementationName, behaviour) {
-    const agent = {}
+  registerBehavior(agentName, behaviour) {
+    const agent = this.#agents.get(agentName) || {}
     for (const [key, action] of Object.entries(behaviour)) {
-      if (!this.#actions.includes(key)) throw new StrategyError(`Action '${key}' is not supported in ${this.#strategyName}`)
-      if (typeof action !== 'function') throw new StrategyError(`Action '${key}' expected to be function`)
+      if (!this.#actions.includes(key)) {
+        throw new StrategyError(`Action '${key}' is not supported in ${this.#strategyName}`)
+      }
+      if (typeof action !== 'function') {
+        throw new StrategyError(`Action '${key}' expected to be function`)
+      }
       agent[key] = action
     }
-    this.#agents.set(implementationName, agent)
+    this.#agents.set(agentName, agent)
   }
 
   getBehaviour(agentName, actionName) {
     const agent = this.#getAgent(agentName)
+    if (!agent) throw new StrategyError("agent is null")
     const behavior = agent[actionName]
-    if (!behavior) throw new StrategyError(`Agent ${agentName} of strategy '${this.#strategyName}' does not implement '${actionName}''`)
+    if (!behavior) {
+      throw new StrategyError(`Agent ${agentName} of strategy '${this.#strategyName}' does not implement '${actionName}''`)
+    }
     return behavior
   }
 
   #getAgent(name) {
-    const agent = this.#agents.get(name)
-    if (!agent) throw new StrategyError(`Strategy ${name} not found`)
-    return agent
+    return this.#agents.get(name) || null
   }
-
 }
 
 // Usage
@@ -68,5 +72,5 @@ strategy.registerBehavior('sms', {
   },
 });
 
-const notify = strategy.getBehaviour('sms', 'notify');
+const notify = strategy.getBehaviour('email', 'notify');
 notify('+380501234567', 'Hello world');

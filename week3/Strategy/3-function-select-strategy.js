@@ -40,11 +40,7 @@ const RENDERERS = {
   },
 };
 
-const selectStrategy = (strategy, name) => {
-  const keys = Object.keys(strategy)
-  if (keys.includes(name)) return strategy[name]
-  return strategy.abstract;
-};
+const selectStrategy = (strategy, name) => strategy[name] || strategy.abstract
 
 // Usage
 
