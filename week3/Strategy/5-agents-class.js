@@ -1,32 +1,42 @@
 'use strict';
 
+class StrategyError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'StrategyError';
+    }
+}
+
 class Strategy {
+  #strategyName
+  #actions = []
+  #agents = new Map()
+
   constructor(strategyName, actions) {
-    this.strategyName = strategyName
-    this.actions = actions
-    this.agents = new Map()
+    this.#strategyName = strategyName
+    this.#actions = actions
   }
 
   registerBehavior(implementationName, behaviour) {
     const agent = {}
     for (const [key, action] of Object.entries(behaviour)) {
-      if (!this.actions.includes(key)) throw new Error(`Action ${key} is not supported in ${this.strategyName}`)
-      if (typeof action !== 'function') throw new Error(`Action ${key} expected to be function`)
+      if (!this.#actions.includes(key)) throw new StrategyError(`Action '${key}' is not supported in ${this.#strategyName}`)
+      if (typeof action !== 'function') throw new StrategyError(`Action '${key}' expected to be function`)
       agent[key] = action
     }
-    this.agents.set(implementationName, agent)
+    this.#agents.set(implementationName, agent)
   }
 
-  getBehaviour(implementationName, actionName) {
-    const agent = this.#getAgent(implementationName)
-    const handler = agent[actionName]
-    if (!handler) throw new Error(`Strategy '${this.strategyName}' does not implement '${actionName}' in implementation '${implementationName}'`)
-    return handler
+  getBehaviour(agentName, actionName) {
+    const agent = this.#getAgent(agentName)
+    const behavior = agent[actionName]
+    if (!behavior) throw new StrategyError(`Agent ${agentName} of strategy '${this.#strategyName}' does not implement '${actionName}''`)
+    return behavior
   }
 
   #getAgent(name) {
-    const agent = this.agents.get(name)
-    if (!agent) throw new Error(`Strategy ${name} not found`)
+    const agent = this.#agents.get(name)
+    if (!agent) throw new StrategyError(`Strategy ${name} not found`)
     return agent
   }
 
