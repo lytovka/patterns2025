@@ -8,17 +8,16 @@ const COLORS: Record<Severity, string> = {
   info: "\x1b[1;37m",
 };
 
-type LoggerOptions = {
-  level?: Severity;
-  color?: Severity;
-};
+type LoggerOptions =
+  | { level: Severity; color?: never }
+  | { color: Severity; level?: never };
 
 type Logger = (option: LoggerOptions) => (message: string) => void;
 
 const logger: Logger = (options) => (message) => {
-  const { level, color } = options;
   const date = new Date().toISOString();
-  const currColor = COLORS[color ?? level ?? "info"];
+  const key = options.level ?? options.color
+  const currColor = COLORS[key];
   console.log(`${currColor}${date}\t${message}`);
 };
 
