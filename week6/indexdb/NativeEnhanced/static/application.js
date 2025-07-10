@@ -16,6 +16,16 @@ class Logger {
   }
 }
 
+// polyfill
+function withResolvers() {
+  let resolve, reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 const logger = new Logger('output');
 
 const OPERATIONS = {
@@ -58,75 +68,94 @@ class IndexedDb {
   }
 
   insert(storeName, record) {
-    return new Promise((resolve, reject) => {
-      const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE);
-      tx.objectStore(storeName).add(record);
-      tx.oncomplete = () => resolve(record);
-      tx.onerror = () => reject(new Error("Could not add record"));
-    })
+    const { promise, resolve, reject } = withResolvers()
+    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE);
+
+    tx.objectStore(storeName).add(record);
+    tx.oncomplete = () => resolve(record);
+    tx.onerror = () => reject(new Error("Could not add record"));
+
+    return promise
   }
 
   readAll(storeName) {
-    return new Promise((resolve, reject) => {
-      const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READONLY);
-      const store = tx.objectStore(storeName);
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result)
-      req.onerror = () => reject(new Error("Could not read record"))
-    })
+    const { promise, resolve, reject } = withResolvers()
+    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READONLY);
+    const store = tx.objectStore(storeName);
+    const req = store.getAll();
+
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(new Error("Could not read record"))
+
+    return promise
   }
 
   // example: {age: {greater: 18}}
   read(storeName, condition = {}) {
-    return new Promise((resolve, reject) => {
-      const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READONLY);
-      const store = tx.objectStore(storeName);
-      const req = store.openCursor();
-      const result = [];
-      req.onsuccess = (event) => {
-        const cursor = event.target.result;
-        if (!cursor) {
-          resolve(result)
-          return
-        }
-        const user = cursor.value;
-        const [objKey, operation] = Object.entries(condition)[0]
-        const [operationKey, value] = Object.entries(operation)[0]
-        if (OPERATIONS[operationKey](user[objKey], value) || !condition || !operation) result.push(user);
-        cursor.continue();
-      };
-      req.onerror = () => reject(new Error('Adult query failed'));
-    })
+    const { promise, resolve, reject } = withResolvers()
+    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READONLY);
+    const store = tx.objectStore(storeName);
+    const req = store.openCursor();
+    const result = [];
+
+    req.onsuccess = (event) => {
+      const cursor = event.target.result;
+      if (!cursor) {
+        resolve(result)
+        return
+      }
+      const user = cursor.value;
+      const [objKey, operation] = Object.entries(condition)[0]
+      const [operationKey, value] = Object.entries(operation)[0]
+      if (OPERATIONS[operationKey](user[objKey], value) || !condition || !operation) result.push(user);
+      cursor.continue();
+    };
+    req.onerror = () => reject(new Error('Adult query failed'));
+
+    return promise
   }
 
   update(storeName, id) {
-    return new Promise((resolve, reject) => {
-      const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE);
-      const store = tx.objectStore(storeName);
-      const req = store.get(id);
-      req.onsuccess = () => {
-        const user = req.result;
-        if (!user) {
-          reject(new Error(`User with id=${id} not found`));
-          return;
-        }
-        user.age += 1;
-        store.put(user);
-        tx.oncomplete = () => resolve('Updated ' + JSON.stringify(user));
-      };
-      req.onerror = () => {
-        reject(new Error('Update failed'));
+    const { promise, resolve, reject } = withResolvers()
+    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE);
+    const store = tx.objectStore(storeName);
+    const req = store.get(id);
+
+    req.onsuccess = () => {
+      const user = req.result;
+      if (!user) {
+        reject(new Error(`User with id=${id} not found`));
+        return;
       }
-    })
+      user.age += 1;
+      store.put(user);
+      tx.oncomplete = () => resolve('Updated ' + JSON.stringify(user));
+    };
+    req.onerror = () => reject(new Error('Update failed'));
+
+    return promise
   }
 
   delete(storeName, id) {
-    return new Promise((resolve, reject) => {
-      const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE)
-      tx.objectStore(storeName).delete(id);
-      tx.oncomplete = () => resolve(`Deleted user with id=${id}`);
-      tx.onerror = () => reject(new Error('Delete failed'));
-    })
+    const { promise, resolve, reject } = withResolvers()
+    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE)
+
+    tx.objectStore(storeName).delete(id);
+    tx.oncomplete = () => resolve(`Deleted user with id=${id}`);
+    tx.onerror = () => reject(new Error('Delete failed'));
+
+    return promise
+  }
+
+  async #withLogging(operation, fn) {
+    try {
+      const result = fn()
+      this.#logger.log(`[IndexedDb] Success: ${operation}`, result)
+      return result
+    }
+    catch (error) {
+      this.#logger.log(`[IndexedDb] Error: ${operation}`, error)
+    }
   }
 }
 
