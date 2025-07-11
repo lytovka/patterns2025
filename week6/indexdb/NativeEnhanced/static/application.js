@@ -26,8 +26,6 @@ function withResolvers() {
   return { promise, resolve, reject };
 }
 
-const logger = new Logger('output');
-
 const OPERATIONS = {
   "greater": (a, b) => a > b,
   "smaller": (a, b) => a < b
@@ -39,59 +37,91 @@ const TRANSACTION_MODES = {
   VERSIONCHANGE: "versionchange"
 }
 
-class IndexedDb {
+class IndexedDb extends EventTarget {
   #db
-  #logger
 
-  constructor(db, options) {
+  constructor(db) {
+    super()
     this.#db = db
-    this.#logger = options.logger || undefined
   }
 
-  static async build(name, version, options = {}) {
+  static async build(name, version) {
     const db = await this.#initDB(name, version)
-    return new IndexedDb(db, options)
+    return new IndexedDb(db)
   }
 
   static async #initDB(name, version) {
-    return new Promise((resolve, reject) => {
-      const request = window.indexedDB.open(name, version);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains('user')) {
-          db.createObjectStore('user', { keyPath: 'id', autoIncrement: true });
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  insert(storeName, record) {
     const { promise, resolve, reject } = withResolvers()
-    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE);
+    const request = window.indexedDB.open(name, version);
 
-    tx.objectStore(storeName).add(record);
-    tx.oncomplete = () => resolve(record);
-    tx.onerror = () => reject(new Error("Could not add record"));
+    // TODO: needs to be model-agnostic
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('user')) {
+        db.createObjectStore('user', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
 
     return promise
   }
 
-  readAll(storeName) {
+  async insert(storeName, record) {
+    const { promise, resolve, reject } = withResolvers()
+    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE);
+
+    tx.objectStore(storeName).add(record);
+    tx.oncomplete = () => {
+      this.#logAndFulfill("insert", record, resolve)
+    }
+    tx.onerror = () => {
+      this.#logAndFulfill("insert", new Error("Could not add record"), reject)
+    }
+
+    return promise
+  }
+
+  async readAll(storeName) {
     const { promise, resolve, reject } = withResolvers()
     const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READONLY);
     const store = tx.objectStore(storeName);
     const req = store.getAll();
 
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(new Error("Could not read record"))
+    req.onsuccess = () => {
+      this.#logAndFulfill("readAll", req.result, resolve)
+    }
+    req.onerror = () => {
+      this.#logAndFulfill("readAll", new Error("Could not read record"), reject)
+    }
 
     return promise
   }
 
   // example: {age: {greater: 18}}
-  read(storeName, condition = {}) {
+  async readSingle(storeName, id) {
+    const { promise, resolve, reject } = withResolvers()
+    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READONLY);
+    const store = tx.objectStore(storeName);
+    const req = store.get(id)
+
+    req.onsuccess = () => {
+      const user = req.result;
+      if (!user) {
+        this.#logAndFulfill("readSingle", new Error(`User with id=${id} not found`), reject);
+        return;
+      }
+      this.#logAndFulfill("readSingle", user, resolve)
+    };
+    req.onerror = () => {
+      this.#logAndFulfill("readSingle", new Error('Update failed'), reject);
+    }
+
+    return promise
+  }
+
+  // example: {age: {greater: 18}}
+  async read(storeName, condition = {}) {
     const { promise, resolve, reject } = withResolvers()
     const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READONLY);
     const store = tx.objectStore(storeName);
@@ -101,7 +131,7 @@ class IndexedDb {
     req.onsuccess = (event) => {
       const cursor = event.target.result;
       if (!cursor) {
-        resolve(result)
+        this.#logAndFulfill("read", result, resolve)
         return
       }
       const user = cursor.value;
@@ -110,12 +140,14 @@ class IndexedDb {
       if (OPERATIONS[operationKey](user[objKey], value) || !condition || !operation) result.push(user);
       cursor.continue();
     };
-    req.onerror = () => reject(new Error('Adult query failed'));
+    req.onerror = () => {
+      this.#logAndFulfill("read", new Error('Adult query failed'), reject)
+    }
 
     return promise
   }
 
-  update(storeName, id) {
+  async update(storeName, id) {
     const { promise, resolve, reject } = withResolvers()
     const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE);
     const store = tx.objectStore(storeName);
@@ -124,78 +156,79 @@ class IndexedDb {
     req.onsuccess = () => {
       const user = req.result;
       if (!user) {
-        reject(new Error(`User with id=${id} not found`));
-        return;
+        this.#logAndFulfill("update", new Error(`User with id=${id} not found`), reject);
+        return
       }
       user.age += 1;
       store.put(user);
-      tx.oncomplete = () => resolve('Updated ' + JSON.stringify(user));
+      tx.oncomplete = () => {
+        this.#logAndFulfill("update", user, resolve);
+      }
     };
-    req.onerror = () => reject(new Error('Update failed'));
-
+    req.onerror = () => {
+      this.#logAndFulfill("update", new Error('Update failed'), reject);
+    }
     return promise
   }
 
-  delete(storeName, id) {
+  async delete(storeName, id) {
     const { promise, resolve, reject } = withResolvers()
-    const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE)
+    return this.readSingle(storeName, id).then((record) => {
+      const tx = this.#db.transaction(storeName, TRANSACTION_MODES.READWRITE)
+      tx.objectStore(storeName).delete(record.id);
 
-    tx.objectStore(storeName).delete(id);
-    tx.oncomplete = () => resolve(`Deleted user with id=${id}`);
-    tx.onerror = () => reject(new Error('Delete failed'));
+      tx.oncomplete = () => {
+        this.#logAndFulfill("delete", record, resolve);
+      }
+      tx.onerror = () => {
+        this.#logAndFulfill("delete", new Error('Delete failed'), reject);
+      }
 
-    return promise
+      return promise
+    })
   }
 
-  async #withLogging(operation, fn) {
-    try {
-      const result = fn()
-      this.#logger.log(`[IndexedDb] Success: ${operation}`, result)
-      return result
-    }
-    catch (error) {
-      this.#logger.log(`[IndexedDb] Error: ${operation}`, error)
-    }
+  #logAndFulfill(type, value, resolver) {
+    const v = value instanceof Error ? value.message : value
+    this.dispatchEvent(
+      new CustomEvent("log", { detail: { type, value: v } })
+    )
+    resolver(value)
   }
 }
 
 // Usage
-const iDB = await IndexedDb.build("Example", 1, { logger: new Logger("output") })
+const logger = new Logger("output")
+const iDB = await IndexedDb.build("Example", 1)
 
-document.getElementById('add').onclick = () => {
+iDB.addEventListener("log", (event) => {
+  logger.log(event.detail)
+})
+
+document.getElementById('add').onclick = async () => {
   const name = prompt('Enter user name:');
   if (!name) return;
   const age = parseInt(prompt('Enter age:'), 10);
   if (!Number.isInteger(age)) return;
-  iDB.insert("user", { name, age })
-    .then((result) => logger.log("aaaa", result))
-    .catch((error) => logger.log("Error", error))
+  await iDB.insert("user", { name, age })
 };
 
-document.getElementById('get').onclick = () => {
-  iDB.readAll("user")
-    .then((result) => logger.log("all records:", result))
-    .catch((error) => logger.log("Error", error))
+document.getElementById('get').onclick = async () => {
+  await iDB.readAll("user")
 };
 
-document.getElementById('update').onclick = () => {
+document.getElementById('update').onclick = async () => {
   const id = parseInt(prompt("Enter ID"), 10)
   if (!Number.isInteger(id)) return
-  iDB.update("user", id)
-    .then((result) => logger.log(result))
-    .catch((error) => logger.log("Error Here", error))
+  await iDB.update("user", id)
 };
 
-document.getElementById('delete').onclick = () => {
+document.getElementById('delete').onclick = async () => {
   const id = parseInt(prompt("Enter ID"), 10)
   if (!Number.isInteger(id)) return
-  iDB.delete("user", id)
-    .then((result) => logger.log("all records:", result))
-    .catch((error) => logger.log("Error", error))
+  await iDB.delete("user", id)
 };
 
-document.getElementById('adults').onclick = () => {
-  iDB.read("user", { age: { greater: 18 } })
-    .then((result) => logger.log("all records:", result))
-    .catch((error) => logger.log("Error", error))
+document.getElementById('adults').onclick = async () => {
+  await iDB.read("user", { age: { greater: 18 } })
 };
