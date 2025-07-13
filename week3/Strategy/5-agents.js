@@ -1,16 +1,16 @@
-'use strict';
+"use strict";
 
 const AGENTS = new Map(); // Notification agent strategies
 
 const registerAgent = (name, behaviour) => {
-  if (typeof name !== 'string') {
-    throw new Error('Agent name expected to be string');
+  if (typeof name !== "string") {
+    throw new Error("Agent name expected to be string");
   }
   const { notify, multicast } = behaviour;
-  if (typeof notify !== 'function') {
+  if (typeof notify !== "function") {
     throw new Error('Key "notify" expected to be function');
   }
-  if (typeof multicast !== 'function') {
+  if (typeof multicast !== "function") {
     throw new Error('Key "multicast" expected to be function');
   }
   AGENTS.set(name, { notify, multicast });
@@ -30,7 +30,7 @@ const getAgent = (name, action) => {
 
 // Usage
 
-registerAgent('email', {
+registerAgent("email", {
   notify: (to, message) => {
     console.log(`Sending "email" notification to <${to}>`);
     console.log(`message length: ${message.length}`);
@@ -41,7 +41,7 @@ registerAgent('email', {
   },
 });
 
-registerAgent('sms', {
+registerAgent("sms", {
   notify: (to, message) => {
     console.log(`Sending "sms" notification to <${to}>`);
     console.log(`message length: ${message.length}`);
@@ -52,5 +52,5 @@ registerAgent('sms', {
   },
 });
 
-const notify = getAgent('sms', 'notify');
-notify('+380501234567', 'Hello world');
+const notify = getAgent("sms", "notify");
+notify("+380501234567", "Hello world");

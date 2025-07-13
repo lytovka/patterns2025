@@ -16,7 +16,7 @@ type Logger = (option: LoggerOptions) => (message: string) => void;
 
 const logger: Logger = (options) => (message) => {
   const date = new Date().toISOString();
-  const key = options.level ?? options.color
+  const key = options.level ?? options.color;
   const currColor = COLORS[key];
   console.log(`${currColor}${date}\t${message}`);
 };

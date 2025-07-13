@@ -1,54 +1,58 @@
-'use strict';
+"use strict";
 
 class StrategyError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'StrategyError';
+    this.name = "StrategyError";
   }
 }
 
 class Strategy {
-  #strategyName
-  #actions = []
-  #agents = new Map()
+  #strategyName;
+  #actions = [];
+  #agents = new Map();
 
   constructor(strategyName, actions) {
-    this.#strategyName = strategyName
-    this.#actions = actions
+    this.#strategyName = strategyName;
+    this.#actions = actions;
   }
 
   registerBehavior(agentName, behaviour) {
-    const agent = this.#agents.get(agentName) || {}
+    const agent = this.#agents.get(agentName) || {};
     for (const [key, action] of Object.entries(behaviour)) {
       if (!this.#actions.includes(key)) {
-        throw new StrategyError(`Action '${key}' is not supported in ${this.#strategyName}`)
+        throw new StrategyError(
+          `Action '${key}' is not supported in ${this.#strategyName}`,
+        );
       }
-      if (typeof action !== 'function') {
-        throw new StrategyError(`Action '${key}' expected to be function`)
+      if (typeof action !== "function") {
+        throw new StrategyError(`Action '${key}' expected to be function`);
       }
-      agent[key] = action
+      agent[key] = action;
     }
-    this.#agents.set(agentName, agent)
+    this.#agents.set(agentName, agent);
   }
 
   getBehaviour(agentName, actionName) {
-    const agent = this.#getAgent(agentName)
-    if (!agent) throw new StrategyError("agent is null")
-    const behavior = agent[actionName]
+    const agent = this.#getAgent(agentName);
+    if (!agent) throw new StrategyError("agent is null");
+    const behavior = agent[actionName];
     if (!behavior) {
-      throw new StrategyError(`Agent ${agentName} of strategy '${this.#strategyName}' does not implement '${actionName}''`)
+      throw new StrategyError(
+        `Agent ${agentName} of strategy '${this.#strategyName}' does not implement '${actionName}''`,
+      );
     }
-    return behavior
+    return behavior;
   }
 
   #getAgent(name) {
-    return this.#agents.get(name) || null
+    return this.#agents.get(name) || null;
   }
 }
 
 // Usage
 
-const strategy = new Strategy("notifications", ["notify", "multicast"])
+const strategy = new Strategy("notifications", ["notify", "multicast"]);
 
 strategy.registerBehavior("email", {
   notify: (to, message) => {
@@ -59,9 +63,9 @@ strategy.registerBehavior("email", {
     console.log(`Sending "email" notification to all`);
     console.log(`message length: ${message.length}`);
   },
-})
+});
 
-strategy.registerBehavior('sms', {
+strategy.registerBehavior("sms", {
   notify: (to, message) => {
     console.log(`Sending "sms" notification to <${to}>`);
     console.log(`message length: ${message.length}`);
@@ -72,5 +76,5 @@ strategy.registerBehavior('sms', {
   },
 });
 
-const notify = strategy.getBehaviour('email', 'notify');
-notify('+380501234567', 'Hello world');
+const notify = strategy.getBehaviour("email", "notify");
+notify("+380501234567", "Hello world");

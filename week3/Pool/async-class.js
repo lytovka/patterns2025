@@ -18,14 +18,17 @@ class Poolify {
 
   constructor(options = {}) {
     this.#maxSize = options.max || DEFAULT_POOL_MAX_SIZE;
-    this.#instances = new Array(this.#maxSize).fill({ instance: null, isFree: false });
+    this.#instances = new Array(this.#maxSize).fill({
+      instance: null,
+      isFree: false,
+    });
   }
 
   add(instance) {
     if (this.#availableInstances === this.#maxSize) {
       throw new PoolError("attempt to add instance to the full pool");
     }
-    if (this.#instances.findIndex(i => i.instance === instance) !== -1) {
+    if (this.#instances.findIndex((i) => i.instance === instance) !== -1) {
       throw new PoolError("attempt to add duplicate instance");
     }
     this.#instances[this.#currentIndex] = { instance, isFree: true };
@@ -34,7 +37,7 @@ class Poolify {
   }
 
   addAll(...instances) {
-    for (const instance of instances) this.add(instance)
+    for (const instance of instances) this.add(instance);
   }
 
   #findFreeInstance(callback) {
@@ -43,11 +46,11 @@ class Poolify {
       return { currInstance: null };
     }
     let currInstance = null;
-    let currIndex = this.#currentIndex
+    let currIndex = this.#currentIndex;
     let isFree = false;
     while (!currInstance || !isFree) {
       // console.log({ currInstance, isFree, currIndex })
-      currIndex = this.#currentIndex
+      currIndex = this.#currentIndex;
       currInstance = this.#instances[this.#currentIndex].instance;
       isFree = this.#instances[this.#currentIndex].isFree;
       this.#currentIndex++;
@@ -66,14 +69,14 @@ class Poolify {
   }
 
   release(instance, callback) {
-    const index = this.#instances.findIndex(i => i.instance === instance);
+    const index = this.#instances.findIndex((i) => i.instance === instance);
     if (index === undefined) {
       callback(new PoolError("cannot release foreign instance", null));
-      return
+      return;
     }
     if (this.#instances[index].isFree) {
       callback(new PoolError("instance was not previously acquired."));
-      return
+      return;
     }
     this.#availableInstances++;
     this.#instances[index].isFree = true;
