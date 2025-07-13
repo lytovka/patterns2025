@@ -55,10 +55,13 @@ class IndexedDbWrapper extends EventTarget {
 
     tx.objectStore(storeName).add(record);
     tx.oncomplete = () => {
-      this.#logAndFulfill('insert', record, resolve);
+      this.#emit("log", { action: 'insert', data: record })
+      resolve(record)
     };
     tx.onerror = () => {
-      this.#logAndFulfill('insert', new Error('Could not add record'), reject);
+      const error = new Error('Could not add record')
+      this.#emit("log", { action: 'insert', data: error.message })
+      reject(error)
     };
 
     return promise;
@@ -71,14 +74,13 @@ class IndexedDbWrapper extends EventTarget {
     const req = store.getAll();
 
     req.onsuccess = () => {
-      this.#logAndFulfill('readAll', req.result, resolve);
+      this.#emit("log", { action: "readAll", data: req.result })
+      resolve(req.result)
     };
     req.onerror = () => {
-      this.#logAndFulfill(
-        'readAll',
-        new Error('Could not read record'),
-        reject,
-      );
+      const error = new Error('Could not read record')
+      this.#emit("log", { action: "readAll", data: error.message })
+      reject(error)
     };
 
     return promise;
@@ -94,17 +96,18 @@ class IndexedDbWrapper extends EventTarget {
     req.onsuccess = () => {
       const user = req.result;
       if (!user) {
-        this.#logAndFulfill(
-          'readSingle',
-          new Error(`User with id=${id} not found`),
-          reject,
-        );
+        const error = new Error(`User with id=${id} not found`)
+        this.#emit("log", { action: "readSingle", data: error.message })
+        reject(error)
         return;
       }
-      this.#logAndFulfill('readSingle', user, resolve);
+      this.#emit("log", { action: "readSingle", data: user })
+      resolve(user)
     };
     req.onerror = () => {
-      this.#logAndFulfill('readSingle', new Error('Update failed'), reject);
+      const error = new Error('Update failed')
+      this.#emit("log", { action: "readSingle", data: error.message })
+      reject(error)
     };
 
     return promise;
@@ -121,7 +124,8 @@ class IndexedDbWrapper extends EventTarget {
     req.onsuccess = (event) => {
       const cursor = event.target.result;
       if (!cursor) {
-        this.#logAndFulfill('read', result, resolve);
+        this.#emit("log", { action: "read", data: result })
+        resolve(result)
         return;
       }
       const user = cursor.value;
@@ -141,7 +145,9 @@ class IndexedDbWrapper extends EventTarget {
       cursor.continue();
     };
     req.onerror = () => {
-      this.#logAndFulfill('read', new Error('Adult query failed'), reject);
+      const error = new Error('Adult query failed')
+      this.#emit("log", { action: "read", data: error.message })
+      reject(error)
     };
 
     return promise;
@@ -156,21 +162,22 @@ class IndexedDbWrapper extends EventTarget {
     req.onsuccess = () => {
       const user = req.result;
       if (!user) {
-        this.#logAndFulfill(
-          'update',
-          new Error(`User with id=${id} not found`),
-          reject,
-        );
+        const error = new Error(`User with id=${id} not found`)
+        this.#emit("log", { action: "update", data: error.message })
+        reject(error)
         return;
       }
       user.age += 1;
       store.put(user);
       tx.oncomplete = () => {
-        this.#logAndFulfill('update', user, resolve);
+        this.#emit("log", { action: "update", data: user })
+        resolve(user)
       };
     };
     req.onerror = () => {
-      this.#logAndFulfill('update', new Error('Update failed'), reject);
+      const error = new Error('Update failed')
+      this.#emit("log", { action: "update", data: error.message })
+      reject(error)
     };
     return promise;
   }
@@ -182,21 +189,21 @@ class IndexedDbWrapper extends EventTarget {
       tx.objectStore(storeName).delete(record.id);
 
       tx.oncomplete = () => {
-        this.#logAndFulfill('delete', record, resolve);
+        this.#emit("log", { action: "delete", data: record })
+        resolve(record)
       };
       tx.onerror = () => {
-        this.#logAndFulfill('delete', new Error('Delete failed'), reject);
+        const error = new Error("Delete failed")
+        this.#emit("log", { action: "delete", data: error.message })
+        resolve(error)
       };
 
       return promise;
     }, reject)
   }
 
-  // TODO: encapsulate emitting and resolve in different methods
-  #logAndFulfill(type, value, resolver) {
-    const v = value instanceof Error ? value.message : value;
-    this.dispatchEvent(new CustomEvent('log', { detail: { type, value: v } }));
-    resolver(value);
+  #emit(type, detail) {
+    this.dispatchEvent(new CustomEvent(type, { detail }));
   }
 }
 
