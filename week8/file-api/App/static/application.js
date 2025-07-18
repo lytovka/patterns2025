@@ -16,14 +16,13 @@ class Logger {
   }
 }
 
-// polyfill
-function withResolvers() {
-  let resolve, reject;
-  const promise = new Promise((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
+class FileSystemApiError extends Error {
+  constructor(action, message, cause) {
+    super(message);
+    this.name = "FileSystemApiError";
+    this.action = action;
+    if (cause) this.cause = cause;
+  }
 }
 
 class FileSystemApiWrapper extends EventTarget {
@@ -39,51 +38,47 @@ class FileSystemApiWrapper extends EventTarget {
   }
 
   async save(content) {
-    const handle = await this.#getWriteFileSystemFileHandle();
-    console.log(handle);
-    const writableStream = await handle.createWritable();
-    await writableStream.write({ type: "write", data: content });
-    await writableStream.close();
-    this.#emit("log", { action: "save", fileName: handle.name });
-    return true;
+    try {
+      const handle = await this.#getWriteFileSystemFileHandle();
+      const writableStream = await handle.createWritable();
+      await writableStream.write({ type: "write", data: content });
+      await writableStream.close();
+      this.#emit("log", { action: "save", fileName: handle.name });
+    } catch (error) {
+      throw this.#handleError("save", error, "Failed to save file");
+    }
   }
 
   async read() {
-    const [handle] = await this.#getReadFileSystemFileHandle();
-    const fileData = await handle.getFile();
-    const { promise, resolve, reject } = withResolvers();
-    const reader = new FileReader();
-    reader.onerror = (error) => {
-      this.#emit({ action: "read", data: { error } });
-      reject(error);
-    };
-    reader.onload = () => {
-      this.#emit("log", {
-        action: "read",
-        data: { fileName: fileData.name, content: reader.result },
-      });
-      resolve();
-    };
-    reader.readAsText(fileData);
-
-    return promise;
+    try {
+      const [handle] = await this.#getReadFileSystemFileHandle();
+      return await handle.getFile();
+    } catch (error) {
+      throw this.#handleError("read", error, "Failed to read file");
+    }
   }
 
   async update(content) {
-    const [handle] = await this.#getReadFileSystemFileHandle();
-    const writableStream = await handle.createWritable({
-      keepExistingData: true,
-    });
-    writableStream.write({ type: "write", data: content });
-    await writableStream.close();
-    const file = await handle.getFile();
-    this.#emit("log", { action: "update", data: { fileName: file.name } });
+    try {
+      const [handle] = await this.#getReadFileSystemFileHandle();
+      const writableStream = await handle.createWritable();
+      await writableStream.write({ type: "write", data: content });
+      await writableStream.close();
+      const file = await handle.getFile();
+      this.#emit("log", { action: "update", data: { fileName: file.name } });
+    } catch (error) {
+      throw this.#handleError("update", error, "Failed to update file");
+    }
   }
 
   async delete(fileName) {
-    const handle = await this.#getFileSystemDirectoryHandle();
-    await handle.removeEntry(fileName);
-    this.#emit("log", { action: "delete", data: { fileName } });
+    try {
+      const handle = await this.#getFileSystemDirectoryHandle();
+      await handle.removeEntry(fileName);
+      this.#emit("log", { action: "delete", data: { fileName } });
+    } catch (error) {
+      throw this.#handleError("delete", error, "Failed to delete file");
+    }
   }
 
   async #getReadFileSystemFileHandle() {
@@ -100,6 +95,14 @@ class FileSystemApiWrapper extends EventTarget {
 
   #emit(type, detail) {
     this.dispatchEvent(new CustomEvent(type, { detail }));
+  }
+
+  #handleError(action, error, customMessage = null) {
+    const message =
+      customMessage || `Failed during ${action}: ${error.message}`;
+    const wrappedError = new FileSystemApiError(action, message, error);
+    this.#emit("error", { action, error: wrappedError });
+    return wrappedError;
   }
 }
 
@@ -125,13 +128,22 @@ fileSystemApi.addEventListener("log", (event) => {
   logger.log(event.detail);
 });
 
+fileSystemApi.addEventListener("error", (event) => {
+  logger.log(event.detail);
+});
+
 document.getElementById("save-file").onclick = async () => {
   const content = window.prompt("Enter content to save into file.");
   await fileSystemApi.save(content);
 };
 
 document.getElementById("open-file").onclick = async () => {
-  await fileSystemApi.read();
+  const file = await fileSystemApi.read();
+  logger.log({
+    action: "read",
+    fileName: file.name,
+    content: await file.text(),
+  });
 };
 
 document.getElementById("update-file").onclick = async () => {
