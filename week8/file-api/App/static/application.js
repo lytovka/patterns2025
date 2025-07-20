@@ -30,7 +30,6 @@ class FileSystemApiError extends Error {
         "The picker operation was not successful because it was aborted by the user.",
       SecurityError: `There was security concerns for action '${action}'.`,
       TypeError: `Cannot process accept types. Please make sure the listed MIME types are correct.`,
-      // TODO: add more File System API related errors
     };
     return (
       errorMessageMap[error.name] ||
