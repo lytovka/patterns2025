@@ -17,11 +17,25 @@ class Logger {
 }
 
 class FileSystemApiError extends Error {
-  constructor(action, message, cause) {
-    super(message);
+  constructor(action, cause) {
+    super(FileSystemApiError.#getUserErrorMessage(action, cause));
     this.name = "FileSystemApiError";
     this.action = action;
-    if (cause) this.cause = cause;
+    this.cause = cause;
+  }
+
+  static #getUserErrorMessage(action, error) {
+    const errorMessageMap = {
+      AbortError:
+        "The picker operation was not successful because it was aborted by the user.",
+      SecurityError: `There was security concerns for action '${action}'.`,
+      TypeError: `Cannot process accept types. Please make sure the listed MIME types are correct.`,
+      // TODO: add more File System API related errors
+    };
+    return (
+      errorMessageMap[error.name] ||
+      `Could not complete action '${action}' in File System API.`
+    );
   }
 }
 
@@ -33,10 +47,6 @@ class FileSystemApiWrapper extends EventTarget {
     this.#options = options;
   }
 
-  static init(options = {}) {
-    return new FileSystemApiWrapper(options);
-  }
-
   async save(content) {
     try {
       const handle = await this.#getWriteFileSystemFileHandle();
@@ -45,7 +55,8 @@ class FileSystemApiWrapper extends EventTarget {
       await writableStream.close();
       this.#emit("log", { action: "save", fileName: handle.name });
     } catch (error) {
-      throw this.#handleError("save", error, "Failed to save file");
+      const fileSystemError = new FileSystemApiError("save", error);
+      this.#handleError(fileSystemError);
     }
   }
 
@@ -54,7 +65,8 @@ class FileSystemApiWrapper extends EventTarget {
       const [handle] = await this.#getReadFileSystemFileHandle();
       return await handle.getFile();
     } catch (error) {
-      throw this.#handleError("read", error, "Failed to read file");
+      const fileSystemError = new FileSystemApiError("read", error);
+      this.#handleError(fileSystemError);
     }
   }
 
@@ -67,7 +79,8 @@ class FileSystemApiWrapper extends EventTarget {
       const file = await handle.getFile();
       this.#emit("log", { action: "update", data: { fileName: file.name } });
     } catch (error) {
-      throw this.#handleError("update", error, "Failed to update file");
+      const fileSystemError = new FileSystemApiError("update", error);
+      this.#handleError(fileSystemError);
     }
   }
 
@@ -77,7 +90,8 @@ class FileSystemApiWrapper extends EventTarget {
       await handle.removeEntry(fileName);
       this.#emit("log", { action: "delete", data: { fileName } });
     } catch (error) {
-      throw this.#handleError("delete", error, "Failed to delete file");
+      const fileSystemError = new FileSystemApiError("delete", error);
+      this.#handleError(fileSystemError);
     }
   }
 
@@ -97,12 +111,8 @@ class FileSystemApiWrapper extends EventTarget {
     this.dispatchEvent(new CustomEvent(type, { detail }));
   }
 
-  #handleError(action, error, customMessage = null) {
-    const message =
-      customMessage || `Failed during ${action}: ${error.message}`;
-    const wrappedError = new FileSystemApiError(action, message, error);
-    this.#emit("error", { action, error: wrappedError });
-    return wrappedError;
+  #handleError(error) {
+    this.#emit("error", { error });
   }
 }
 
@@ -120,38 +130,41 @@ const pickerOpts = {
   multiple: false,
   startIn: "desktop",
 };
-const fileSystemApi = FileSystemApiWrapper.init(pickerOpts);
+const fileSystemApiWrapper = new FileSystemApiWrapper(pickerOpts);
 
 const logger = new Logger("output");
 
-fileSystemApi.addEventListener("log", (event) => {
+fileSystemApiWrapper.addEventListener("log", (event) => {
   logger.log(event.detail);
 });
 
-fileSystemApi.addEventListener("error", (event) => {
-  logger.log(event.detail);
+fileSystemApiWrapper.addEventListener("error", (event) => {
+  const error = event.detail.error;
+  logger.log({ action: error.action, message: error.message });
 });
 
 document.getElementById("save-file").onclick = async () => {
   const content = window.prompt("Enter content to save into file.");
-  await fileSystemApi.save(content);
+  await fileSystemApiWrapper.save(content);
 };
 
 document.getElementById("open-file").onclick = async () => {
-  const file = await fileSystemApi.read();
-  logger.log({
-    action: "read",
-    fileName: file.name,
-    content: await file.text(),
-  });
+  try {
+    const file = await fileSystemApiWrapper.read();
+    logger.log({
+      action: "read",
+      fileName: file.name,
+      content: await file.text(),
+    });
+  } catch (error) {}
 };
 
 document.getElementById("update-file").onclick = async () => {
   const content = window.prompt("Enter content to save into file.");
-  await fileSystemApi.update(content);
+  await fileSystemApiWrapper.update(content);
 };
 
 document.getElementById("delete-file").onclick = async () => {
   const fileName = window.prompt("Enter file name to delete");
-  await fileSystemApi.delete(fileName);
+  await fileSystemApiWrapper.delete(fileName);
 };
