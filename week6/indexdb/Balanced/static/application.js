@@ -37,27 +37,37 @@ const dbConfig = new DatabaseConfiguration('BalancedDb', {
   schemas,
 });
 const connection = await new DatabaseConnection(dbConfig).open();
-const transactionManager = new DatabaseTransactionManager(connection);
+const manager = new DatabaseTransactionManager(connection);
+
+const transactionManager = {
+  user: {
+    getAll: () => manager.getAll('user'),
+    get: (id) => manager.get('user', id),
+    insert: (record) => manager.insert('user', record),
+    update: (record) => manager.update('user', record),
+    delete: (id) => manager.delete('user', id),
+  },
+};
 
 document.getElementById('add').onclick = async () => {
   const name = prompt('Enter user name:');
   if (!name) return;
   const age = parseInt(prompt('Enter age:'), 10);
   if (!Number.isInteger(age)) return;
-  const result = await transactionManager.insert('user', { name, age });
+  const result = await transactionManager.user.insert({ name, age });
   console.log(result);
 };
 
 document.getElementById('get').onclick = async () => {
-  const result = await transactionManager.getAll('user');
+  const result = await transactionManager.user.getAll();
   console.log(result);
 };
 
 document.getElementById('update').onclick = async () => {
   const id = parseInt(prompt('Enter ID'), 10);
   if (!Number.isInteger(id)) return;
-  const user = await transactionManager.get('user', id);
-  const result = await transactionManager.update('user', {
+  const user = await transactionManager.user.get(id);
+  const result = await transactionManager.user.update({
     ...user,
     age: user.age + 1,
   });
@@ -67,7 +77,7 @@ document.getElementById('update').onclick = async () => {
 document.getElementById('delete').onclick = async () => {
   const id = parseInt(prompt('Enter ID'), 10);
   if (!Number.isInteger(id)) return;
-  const result = await transactionManager.delete('user', id);
+  const result = await transactionManager.user.delete(id);
   console.log(result);
 };
 
