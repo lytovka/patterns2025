@@ -36,7 +36,6 @@ const dbConfig = new DatabaseConfiguration('BalancedDb', {
   version: 1,
   schemas,
 });
-console.log(dbConfig);
 const connection = await new DatabaseConnection(dbConfig).open();
 const transactionManager = new DatabaseTransactionManager(connection);
 
