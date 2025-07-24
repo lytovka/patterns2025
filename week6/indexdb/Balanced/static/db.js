@@ -43,7 +43,7 @@ class DatabaseConnection {
   async open() {
     const { name, version } = this.#dbConfig;
     await new Promise((resolve, reject) => {
-      const request = indexedDB.open(name, version);
+      const request = window.indexedDB.open(name, version);
       request.onupgradeneeded = (event) => {
         this.#upgradeVersion(event.target.result);
       };
