@@ -1,25 +1,10 @@
+import { SchemaValidator } from './validation.js';
+
 const TRANSACTION_MODES = {
   READONLY: 'readonly',
   READWRITE: 'readwrite',
   VERSIONCHANGE: 'versionchange',
 };
-
-class SchemaValidator {
-  validate(record, schema) {
-    for (const [key, val] of Object.entries(record)) {
-      const field = schema[key];
-      const name = `Field ${key}`;
-      if (!field) throw new Error(`${name} is not defined`);
-      if (field.type === 'int') {
-        if (Number.isInteger(val)) continue;
-        throw new Error(`${name} expected to be integer`);
-      } else if (field.type === 'str') {
-        if (typeof val === 'string') continue;
-        throw new Error(`${name} expected to be string`);
-      }
-    }
-  }
-}
 
 class DatabaseConfiguration {
   name;
@@ -87,12 +72,12 @@ class DatabaseConnection {
     return this.#active;
   }
 
-  getTransaction(store, mode) {
-    return this.#instance.transaction(store, mode);
+  getInstance() {
+    return this.#instance;
   }
 
-  getSchema(storeName) {
-    return this.#dbConfig.schemas[storeName];
+  getConfig() {
+    return this.#dbConfig;
   }
 
   #upgradeVersion(db) {
@@ -117,14 +102,8 @@ class DatabaseTransactionManager {
    **/
   #connection;
 
-  /**
-   * @type {SchemaValidator}
-   **/
-  #validator;
-
   constructor(connection) {
     this.#connection = connection;
-    this.#validator = new SchemaValidator();
   }
 
   get(store, id) {
@@ -169,7 +148,7 @@ class DatabaseTransactionManager {
         return reject(new Error('Database not connected'));
       }
       try {
-        const tx = this.#connection.getTransaction(store, mode);
+        const tx = this.#createTransaction(store, mode);
         const objectStore = tx.objectStore(store);
         const result = operation(objectStore);
         tx.oncomplete = () => resolve(result);
@@ -180,15 +159,29 @@ class DatabaseTransactionManager {
     });
   }
 
+  #createTransaction(store, mode) {
+    return this.#connection.getInstance().transaction(store, mode);
+  }
+
   #validate({ store, record }) {
-    const schema = this.#connection.getSchema(store);
+    const { schemas } = this.#connection.getConfig();
+    const schema = schemas[store];
     if (!schema) throw Error(`No schema found for store ${store}`);
-    this.#validator.validate(record, schema);
+    SchemaValidator.validate(record, schema);
   }
 }
+
+const createDomainTransactionManager = (manager, domain) => ({
+  getAll: () => manager.getAll(domain),
+  get: (id) => manager.get(domain, id),
+  insert: (record) => manager.insert(domain, record),
+  update: (record) => manager.update(domain, record),
+  delete: (id) => manager.delete(domain, id),
+});
 
 export {
   DatabaseConnection,
   DatabaseConfiguration,
   DatabaseTransactionManager,
+  createDomainTransactionManager,
 };

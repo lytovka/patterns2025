@@ -2,6 +2,7 @@ import {
   DatabaseTransactionManager,
   DatabaseConnection,
   DatabaseConfiguration,
+  createDomainTransactionManager,
 } from './db.js';
 
 class Logger {
@@ -40,13 +41,7 @@ const connection = await new DatabaseConnection(dbConfig).open();
 const manager = new DatabaseTransactionManager(connection);
 
 const transactionManager = {
-  user: {
-    getAll: () => manager.getAll('user'),
-    get: (id) => manager.get('user', id),
-    insert: (record) => manager.insert('user', record),
-    update: (record) => manager.update('user', record),
-    delete: (id) => manager.delete('user', id),
-  },
+  user: createDomainTransactionManager(manager, 'user'),
 };
 
 document.getElementById('add').onclick = async () => {
