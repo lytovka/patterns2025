@@ -1,4 +1,8 @@
-import IndexedDbWrapper from './indexeddb-wrapper.js';
+import {
+  DatabaseTransactionManager,
+  DatabaseConnection,
+  DatabaseConfiguration,
+} from './db.js';
 
 class Logger {
   #output;
@@ -20,36 +24,52 @@ class Logger {
 
 // Usage
 const logger = new Logger('output');
-const iDB = await IndexedDbWrapper.build('Example', 1);
 
-iDB.addEventListener('log', (event) => {
-  logger.log(event.detail);
+const schemas = {
+  user: {
+    id: { type: 'int', primary: true },
+    name: { type: 'str', index: true },
+    age: { type: 'int' },
+  },
+};
+const dbConfig = new DatabaseConfiguration('BalancedDb', {
+  version: 1,
+  schemas,
 });
+console.log(dbConfig);
+const connection = await new DatabaseConnection(dbConfig).open();
+const transactionManager = new DatabaseTransactionManager(connection);
 
 document.getElementById('add').onclick = async () => {
   const name = prompt('Enter user name:');
   if (!name) return;
   const age = parseInt(prompt('Enter age:'), 10);
   if (!Number.isInteger(age)) return;
-  await iDB.insert('user', { name, age });
+  const result = await transactionManager.insert('user', { name, age });
+  console.log(result);
 };
 
 document.getElementById('get').onclick = async () => {
-  await iDB.readAll('user');
+  const result = await transactionManager.getAll('user');
+  console.log(result);
 };
 
 document.getElementById('update').onclick = async () => {
   const id = parseInt(prompt('Enter ID'), 10);
   if (!Number.isInteger(id)) return;
-  await iDB.update('user', id);
+  const user = await transactionManager.get('user', id);
+  const result = await transactionManager.update('user', {
+    ...user,
+    age: user.age + 1,
+  });
+  console.log(result);
 };
 
 document.getElementById('delete').onclick = async () => {
   const id = parseInt(prompt('Enter ID'), 10);
   if (!Number.isInteger(id)) return;
-  await iDB.delete('user', id);
+  const result = await transactionManager.delete('user', id);
+  console.log(result);
 };
 
-document.getElementById('adults').onclick = async () => {
-  await iDB.read('user', { age: { greater: 18 } });
-};
+document.getElementById('adults').onclick = async () => {};
