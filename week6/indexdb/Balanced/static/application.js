@@ -76,4 +76,11 @@ document.getElementById('delete').onclick = async () => {
   console.log(result);
 };
 
-document.getElementById('adults').onclick = async () => {};
+document.getElementById('adults').onclick = async () => {
+  const users = await transactionManager.user.select({
+    filter: (user) => user.age >= 18,
+    order: { name: 'asc' },
+    limit: 10,
+  });
+  console.log(users);
+};

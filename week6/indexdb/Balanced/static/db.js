@@ -1,4 +1,4 @@
-import { SchemaValidator } from './validation.js';
+import { ApplicationUtils } from './utils.js';
 
 const TRANSACTION_MODES = {
   READONLY: 'readonly',
@@ -142,6 +142,37 @@ class DatabaseTransactionManager {
     return this.#exec(store, (objectStore) => objectStore.delete(id));
   }
 
+  select(store, { where, limit, offset, order, filter, sort }) {
+    const op = (objectStore) => {
+      const result = [];
+      let skipped = 0;
+      return new Promise((resolve, reject) => {
+        const reply = () => {
+          if (sort) result.sort(sort);
+          if (order) ApplicationUtils.sort(result, order);
+          resolve(result);
+        };
+        const req = objectStore.openCursor();
+        req.onerror = () => reject(req.error);
+        req.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (!cursor) return void reply();
+          const record = cursor.value;
+          const check = ([key, val]) => record[key] === val;
+          const match = !where || Object.entries(where).every(check);
+          const valid = !filter || filter(record);
+          if (match && valid) {
+            if (!offset || skipped >= offset) result.push(record);
+            else skipped++;
+            if (limit && result.length >= limit) return void reply();
+          }
+          cursor.continue();
+        };
+      });
+    };
+    return this.#exec(store, op, TRANSACTION_MODES.READONLY);
+  }
+
   #exec(store, operation, mode = TRANSACTION_MODES.READWRITE) {
     return new Promise((resolve, reject) => {
       if (!this.#connection.isActive()) {
@@ -167,13 +198,14 @@ class DatabaseTransactionManager {
     const { schemas } = this.#connection.getConfig();
     const schema = schemas[store];
     if (!schema) throw Error(`No schema found for store ${store}`);
-    SchemaValidator.validate(record, schema);
+    ApplicationUtils.validate(record, schema);
   }
 }
 
 const createDomainTransactionManager = (manager, domain) => ({
   getAll: () => manager.getAll(domain),
   get: (id) => manager.get(domain, id),
+  select: (ops) => manager.select(domain, ops),
   insert: (record) => manager.insert(domain, record),
   update: (record) => manager.update(domain, record),
   delete: (id) => manager.delete(domain, id),

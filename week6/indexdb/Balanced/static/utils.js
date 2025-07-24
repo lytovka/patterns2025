@@ -1,4 +1,4 @@
-class SchemaValidator {
+class ApplicationUtils {
   static validate(record, schema) {
     for (const [key, val] of Object.entries(record)) {
       const field = schema[key];
@@ -13,6 +13,20 @@ class SchemaValidator {
       }
     }
   }
+
+  static sort(arr, order) {
+    if (typeof order !== 'object') return;
+    const rule = Object.entries(order)[0];
+    if (!Array.isArray(rule)) return;
+    const [field, dir = 'asc'] = rule;
+    const sign = dir === 'desc' ? -1 : 1;
+    arr.sort((a, b) => {
+      const x = a[field];
+      const y = b[field];
+      if (x === y) return 0;
+      return x > y ? sign : -sign;
+    });
+  }
 }
 
-export { SchemaValidator };
+export { ApplicationUtils };
