@@ -1,4 +1,4 @@
-import { ApplicationUtils } from './utils.js';
+import { ApplicationUtils, SchemaValidator } from './utils.js';
 
 const TRANSACTION_MODES = {
   READONLY: 'readonly',
@@ -83,9 +83,12 @@ class DatabaseConnection {
 
 class TransactionManager {
   #connection;
+  #validator;
 
   constructor(connection) {
     this.#connection = connection;
+    const { schemas } = this.#connection.getConfig();
+    this.#validator = new SchemaValidator(schemas);
   }
 
   get(store, id) {
@@ -111,12 +114,12 @@ class TransactionManager {
   }
 
   insert(store, record) {
-    this.#validate({ store, record });
+    this.#validator.validate(record, store);
     return this.#exec(store, (objectStore) => objectStore.add(record));
   }
 
   update(store, record) {
-    this.#validate({ store, record });
+    this.#validator.validate(record, store);
     return this.#exec(store, (objectStore) => objectStore.put(record));
   }
 
@@ -174,13 +177,6 @@ class TransactionManager {
 
   #createTransaction(store, mode) {
     return this.#connection.getInstance().transaction(store, mode);
-  }
-
-  #validate({ store, record }) {
-    const { schemas } = this.#connection.getConfig();
-    const schema = schemas[store];
-    if (!schema) throw Error(`No schema found for store ${store}`);
-    ApplicationUtils.validate(record, schema);
   }
 }
 
