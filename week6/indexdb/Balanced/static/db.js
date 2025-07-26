@@ -7,10 +7,6 @@ const TRANSACTION_MODES = {
 };
 
 class DatabaseConfiguration {
-  name;
-  version;
-  schemas;
-
   constructor(name, { version = 1, schemas = {} } = {}) {
     this.name = name;
     this.version = version;
@@ -19,29 +15,18 @@ class DatabaseConfiguration {
 }
 
 class DatabaseConnection {
-  /**
-   * @type {DatabaseConfiguration}
-   */
-  #dbConfig;
-
-  /**
-   * @type {boolean}
-   */
+  #config;
   #active;
-
-  /**
-   * @type {IDBDatabase}
-   */
   #instance;
 
-  constructor(dbConfig) {
-    this.#dbConfig = dbConfig;
+  constructor(config) {
+    this.#config = config;
     this.#active = false;
     this.#instance = null;
   }
 
   async open() {
-    const { name, version } = this.#dbConfig;
+    const { name, version } = this.#config;
     await new Promise((resolve, reject) => {
       const request = window.indexedDB.open(name, version);
       request.onupgradeneeded = (event) => {
@@ -77,11 +62,11 @@ class DatabaseConnection {
   }
 
   getConfig() {
-    return this.#dbConfig;
+    return this.#config;
   }
 
   #upgradeVersion(db) {
-    const { schemas } = this.#dbConfig;
+    const { schemas } = this.#config;
     for (const [name, schema] of Object.entries(schemas)) {
       if (!db.objectStoreNames.contains(name)) {
         const options = { keyPath: 'id', autoIncrement: true };
@@ -96,10 +81,7 @@ class DatabaseConnection {
   }
 }
 
-class DatabaseTransactionManager {
-  /**
-   * @type {DatabaseConnection}
-   **/
+class TransactionManager {
   #connection;
 
   constructor(connection) {
@@ -214,6 +196,6 @@ const createDomainTransactionManager = (manager, domain) => ({
 export {
   DatabaseConnection,
   DatabaseConfiguration,
-  DatabaseTransactionManager,
+  TransactionManager,
   createDomainTransactionManager,
 };

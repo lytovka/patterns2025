@@ -1,5 +1,5 @@
 import {
-  DatabaseTransactionManager,
+  TransactionManager,
   DatabaseConnection,
   DatabaseConfiguration,
   createDomainTransactionManager,
@@ -38,7 +38,7 @@ const dbConfig = new DatabaseConfiguration('BalancedDb', {
   schemas,
 });
 const connection = await new DatabaseConnection(dbConfig).open();
-const manager = new DatabaseTransactionManager(connection);
+const manager = new TransactionManager(connection);
 
 const transactionManager = {
   user: createDomainTransactionManager(manager, 'user'),
