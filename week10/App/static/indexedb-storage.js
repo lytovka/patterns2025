@@ -16,7 +16,7 @@ const TRANSACTION_MODES = {
   VERSIONCHANGE: "versionchange",
 };
 
-class IndexedDbWrapper extends AbstractStorage {
+class IndexedDbStorage extends AbstractStorage {
   constructor(connection, options) {
     super(connection, options);
   }
@@ -26,7 +26,7 @@ class IndexedDbWrapper extends AbstractStorage {
     if (!name) throw new Error("'options.name' must be provided");
     if (!version) throw new Error("'options.version' must be provided");
     const connection = await this.#initDB(options);
-    return new IndexedDbWrapper(connection, options);
+    return new IndexedDbStorage(connection, options);
   }
 
   static async #initDB(options) {
@@ -55,12 +55,13 @@ class IndexedDbWrapper extends AbstractStorage {
 
   async insert(storeName, id, record) {
     const { promise, resolve, reject } = withResolvers();
+    const idInt = parseInt(id);
     const tx = this.connection.transaction(
       storeName,
       TRANSACTION_MODES.READWRITE,
     );
     const store = tx.objectStore(storeName);
-    id ? store.add(record, id) : store.add(record);
+    idInt ? store.add(record, idInt) : store.add(record);
     tx.oncomplete = () => {
       this.#emit("log", { action: "insert", data: record });
       resolve(record);
@@ -98,12 +99,13 @@ class IndexedDbWrapper extends AbstractStorage {
 
   async read(storeName, id) {
     const { promise, resolve, reject } = withResolvers();
+    const idInt = parseInt(id);
     const tx = this.connection.transaction(
       storeName,
       TRANSACTION_MODES.READONLY,
     );
     const store = tx.objectStore(storeName);
-    const req = store.get(id);
+    const req = store.get(idInt);
 
     req.onsuccess = () => {
       const user = req.result;
@@ -127,6 +129,7 @@ class IndexedDbWrapper extends AbstractStorage {
   }
 
   async update(storeName, id, content) {
+    const idInt = parseInt(id);
     const { promise, resolve, reject } = withResolvers();
     const tx = this.connection.transaction(
       storeName,
@@ -135,7 +138,7 @@ class IndexedDbWrapper extends AbstractStorage {
     const store = tx.objectStore(storeName);
     const req = this.options.keyPath
       ? store.put(content)
-      : store.put(content, id);
+      : store.put(content, idInt);
 
     req.onsuccess = (event) => {
       console.log("update", event);
@@ -151,8 +154,9 @@ class IndexedDbWrapper extends AbstractStorage {
   }
 
   async delete(storeName, id) {
+    const idInt = parseInt(id);
     const { promise, resolve, reject } = withResolvers();
-    return await this.read(storeName, id).then((record) => {
+    return await this.read(storeName, idInt).then((record) => {
       const tx = this.connection.transaction(
         storeName,
         TRANSACTION_MODES.READWRITE,
@@ -178,4 +182,4 @@ class IndexedDbWrapper extends AbstractStorage {
   }
 }
 
-export default IndexedDbWrapper;
+export default IndexedDbStorage;

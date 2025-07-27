@@ -1,4 +1,4 @@
-import { AbstractStorage } from "./storage";
+import { AbstractStorage } from "./storage.js";
 
 class OriginPrivateFileSystemError extends Error {
   constructor(action, cause) {
@@ -7,20 +7,6 @@ class OriginPrivateFileSystemError extends Error {
     this.action = action;
     this.cause = cause;
   }
-
-  // static #getUserErrorMessage(action, error) {
-  //   const errorMessageMap = {
-  //     AbortError:
-  //       "The picker operation was not successful because it was aborted by the user.",
-  //     SecurityError: `There was security concerns for action '${action}'.`,
-  //     TypeError: `Cannot process accept types. Please make sure the listed MIME types are correct.`,
-  //     NotFoundError: `Action '${action}' cannot be completed because file or directory does not exist.`,
-  //   };
-  //   return (
-  //     errorMessageMap[error.name] ||
-  //     `Could not complete action '${action}' in Origin Private File System.`
-  //   );
-  // }
 }
 
 class OPFSStorage extends AbstractStorage {
@@ -36,20 +22,22 @@ class OPFSStorage extends AbstractStorage {
     return new OPFSStorage(fs, options);
   }
 
-  async insert(directory, file, content = null) {
+  async insert(directory, key, content = null) {
+    console.log(directory, key, content);
     try {
       const dir = await this.connection.getDirectoryHandle(directory, {
         create: true,
       });
-      const fileHandle = await dir.getFileHandle(file, {
+      const fileHandle = await dir.getFileHandle(`${key}.txt`, {
         create: true,
       });
       if (!content) return fileHandle;
       const writable = await fileHandle.createWritable();
-      await writable.write(content);
+      await writable.write(content.toString());
       await writable.close();
       return fileHandle;
     } catch (error) {
+      console.log(error);
       const opfsError = new OriginPrivateFileSystemError("save", error);
       this.#handleError(opfsError);
     }
@@ -58,8 +46,14 @@ class OPFSStorage extends AbstractStorage {
   async readAll(directory) {
     try {
       const dir = await this.connection.getDirectoryHandle(directory);
-      return dir.entries();
+      const res = [];
+      for await (const entry of dir.entries()) {
+        res.push(entry[0]);
+      }
+      this.#emit("log", { action: "readAll", data: res });
+      return res;
     } catch (error) {
+      console.log(error);
       const opfsError = new OriginPrivateFileSystemError("read", error);
       this.#handleError(opfsError);
     }
@@ -70,6 +64,7 @@ class OPFSStorage extends AbstractStorage {
       const dir = await this.connection.getDirectoryHandle(directory);
       return await dir.getFileHandle(file);
     } catch (error) {
+      console.log(error);
       const opfsError = new OriginPrivateFileSystemError("read", error);
       this.#handleError(opfsError);
     }
@@ -83,7 +78,11 @@ class OPFSStorage extends AbstractStorage {
         keepExistingData: this.#keepExistingData,
       });
       const { size } = await fileHandle.getFile();
-      await writable.write({ type: "write", position: size, data: content });
+      await writable.write({
+        type: "write",
+        position: size,
+        data: content.toString(),
+      });
       await writable.close();
       return fileHandle;
     } catch (error) {
@@ -107,8 +106,8 @@ class OPFSStorage extends AbstractStorage {
   }
 
   #handleError(error) {
-    this.#emit("error", { error });
+    this.#emit("log", { error });
   }
 }
 
-export { OPFSStorage };
+export default OPFSStorage;
