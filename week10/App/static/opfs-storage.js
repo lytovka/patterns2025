@@ -1,3 +1,5 @@
+import { AbstractStorage } from "./storage";
+
 class OriginPrivateFileSystemError extends Error {
   constructor(action, cause) {
     super(cause.message);
@@ -21,40 +23,7 @@ class OriginPrivateFileSystemError extends Error {
   // }
 }
 
-class StorageWrapper extends EventTarget {
-  constructor(connection, options = {}) {
-    if (new.target === StorageWrapper) {
-      throw new Error("Cannot instantiate abstract class StorageWrapper");
-    }
-    super();
-    this.connection = connection;
-    this.options = options;
-  }
-
-  async insert(store, content) {
-    throw new Error("Abstract method 'insert' must be implemented by subclass");
-  }
-
-  async readAll(store) {
-    throw new Error(
-      "Abstract method 'readAll' must be implemented by subclass",
-    );
-  }
-
-  async read(store, id) {
-    throw new Error("Abstract method 'read' must be implemented by subclass");
-  }
-
-  async update(store, record) {
-    throw new Error("Abstract method 'update' must be implemented by subclass");
-  }
-
-  async delete(store, id) {
-    throw new Error("Abstract method 'update' must be implemented by subclass");
-  }
-}
-
-class OriginPrivateFileSystemWrapper extends StorageWrapper {
+class OPFSStorage extends AbstractStorage {
   #keepExistingData = false;
 
   constructor(connection, options = {}) {
@@ -64,7 +33,7 @@ class OriginPrivateFileSystemWrapper extends StorageWrapper {
 
   static async build(options = {}) {
     const fs = await navigator.storage.getDirectory();
-    return new OriginPrivateFileSystemWrapper(fs, options);
+    return new OPFSStorage(fs, options);
   }
 
   async insert(directory, file, content = null) {
@@ -142,4 +111,4 @@ class OriginPrivateFileSystemWrapper extends StorageWrapper {
   }
 }
 
-export { OriginPrivateFileSystemWrapper };
+export { OPFSStorage };

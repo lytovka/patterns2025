@@ -1,4 +1,4 @@
-import { OriginPrivateFileSystemWrapper } from "./opfs-api.js";
+import { OPFSStorage } from "./opfs-storage.js";
 
 class Logger {
   #output;
@@ -30,7 +30,7 @@ class Logger {
 
 // Usage
 const directoryName = "Application";
-const opfs = await OriginPrivateFileSystemWrapper.build();
+const opfs = await OPFSStorage.build();
 const logFile = await opfs.insert(directoryName, "data.log", "");
 console.log(logFile, opfs);
 const logger = await new Logger("output", logFile);
