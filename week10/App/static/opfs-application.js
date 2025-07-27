@@ -8,7 +8,6 @@ class Logger {
   constructor(outputId, file) {
     this.#output = document.getElementById(outputId);
     this.#file = file;
-    console.log(file);
     return file.createWritable().then((stream) => {
       this.#stream = stream;
       return this;
@@ -30,8 +29,10 @@ class Logger {
 }
 
 // Usage
+const directoryName = "Application";
 const opfs = await OriginPrivateFileSystemWrapper.build();
-const logFile = await opfs.save("data.log", "");
+const logFile = await opfs.insert(directoryName, "data.log", "");
+console.log(logFile, opfs);
 const logger = await new Logger("output", logFile);
 
 opfs.addEventListener("log", (event) => {
@@ -46,25 +47,25 @@ opfs.addEventListener("error", (event) => {
 
 document.getElementById("save-file").onclick = async () => {
   const data = window.prompt("Save file data");
-  const fileHandle = await opfs.save("data.txt", data);
+  const fileHandle = await opfs.insert(directoryName, "data.txt", data);
   const file = await fileHandle.getFile();
   logger.log({ action: "save", content: await file.text() });
 };
 
 document.getElementById("open-file").onclick = async () => {
-  const fileHandle = await opfs.read("data.txt");
+  const fileHandle = await opfs.read(directoryName, "data.txt");
   const file = await fileHandle.getFile();
   logger.log({ action: "open", content: await file.text() });
 };
 
 document.getElementById("update-file").onclick = async () => {
   const data = window.prompt("File data");
-  const fileHandle = await opfs.update("data.txt", data);
+  const fileHandle = await opfs.update(directoryName, "data.txt", data);
   const file = await fileHandle.getFile();
   logger.log({ action: "update", content: await file.text() });
 };
 
 document.getElementById("delete-file").onclick = async () => {
-  await opfs.delete("data.txt");
+  await opfs.delete(directoryName, "data.txt");
   logger.log({ action: "delete", fileName: "data.txt" });
 };
