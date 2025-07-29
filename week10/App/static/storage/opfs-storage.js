@@ -1,5 +1,3 @@
-import { AbstractStorage } from "./storage.js";
-
 class OriginPrivateFileSystemError extends Error {
   constructor(action, cause) {
     super(cause.message);
@@ -9,14 +7,17 @@ class OriginPrivateFileSystemError extends Error {
   }
 }
 
-class OPFSStorage extends AbstractStorage {
-  #keepExistingData = false;
-  #extName;
+/**
+ * @implements {AbstractStorage<FileSystemHandle>}
+ */
+class OPFSStorage {
+  #connection;
+  #options;
 
   constructor(connection, options = {}) {
-    super(connection, options);
-    this.#keepExistingData = options.keepExistingData || false;
-    this.#extName = options.extName || "txt";
+    const defaultOptions = { keepExistingData: true, extName: "txt" };
+    this.#connection = connection;
+    this.#options = { defaultOptions, ...options };
   }
 
   static async build(options = {}) {
@@ -25,12 +26,12 @@ class OPFSStorage extends AbstractStorage {
   }
 
   async insert(directory, key, content = null) {
-    console.log(directory, key, content);
+    const { extName } = this.#options;
     try {
-      const dir = await this.connection.getDirectoryHandle(directory, {
+      const dir = await this.#connection.getDirectoryHandle(directory, {
         create: true,
       });
-      const fileHandle = await dir.getFileHandle(`${key}.${this.#extName}`, {
+      const fileHandle = await dir.getFileHandle(`${key}.${extName}`, {
         create: true,
       });
       if (!content) return fileHandle;
@@ -39,8 +40,6 @@ class OPFSStorage extends AbstractStorage {
       await writable.close();
       return fileHandle;
     } catch (error) {
-      console.log(error);
-      console.log(error);
       const opfsError = new OriginPrivateFileSystemError("save", error);
       this.#handleError(opfsError);
     }
@@ -48,33 +47,32 @@ class OPFSStorage extends AbstractStorage {
 
   async readAll(directory) {
     try {
-      const dir = await this.connection.getDirectoryHandle(directory);
+      const dir = await this.#connection.getDirectoryHandle(directory);
       return dir.entries();
     } catch (error) {
-      console.log(error);
       const opfsError = new OriginPrivateFileSystemError("read", error);
       this.#handleError(opfsError);
     }
   }
 
   async read(directory, file) {
+    const { extName } = this.#options;
     try {
-      console.log("read single");
-      const dir = await this.connection.getDirectoryHandle(directory);
-      return await dir.getFileHandle(`${file}.${this.#extName}`);
+      const dir = await this.#connection.getDirectoryHandle(directory);
+      return await dir.getFileHandle(`${file}.${extName}`);
     } catch (error) {
-      console.log(error);
       const opfsError = new OriginPrivateFileSystemError("read", error);
       this.#handleError(opfsError);
     }
   }
 
   async update(directory, file, content) {
+    const { keepExistingData, extName } = this.#options;
     try {
-      const dir = await this.connection.getDirectoryHandle(directory);
-      const fileHandle = await dir.getFileHandle(`${file}.${this.#extName}`);
+      const dir = await this.#connection.getDirectoryHandle(directory);
+      const fileHandle = await dir.getFileHandle(`${file}.${extName}`);
       const writable = await fileHandle.createWritable({
-        keepExistingData: this.#keepExistingData,
+        keepExistingData,
       });
       const { size } = await fileHandle.getFile();
       await writable.write({
@@ -91,21 +89,18 @@ class OPFSStorage extends AbstractStorage {
   }
 
   async delete(directory, file) {
+    const { extName } = this.#options;
     try {
-      const dir = await this.connection.getDirectoryHandle(directory);
-      return await dir.removeEntry(`${file}.${this.#extName}`);
+      const dir = await this.#connection.getDirectoryHandle(directory);
+      return await dir.removeEntry(`${file}.${extName}`);
     } catch (error) {
       const opfsError = new OriginPrivateFileSystemError("delete", error);
       this.#handleError(opfsError);
     }
   }
 
-  #emit(type, detail) {
-    this.dispatchEvent(new CustomEvent(type, { detail }));
-  }
-
   #handleError(error) {
-    this.#emit("error", { error });
+    console.error(error);
   }
 }
 

@@ -2,15 +2,11 @@ interface AbstractStorageOptions {
   [key: string]: any;
 }
 
-export abstract class AbstractStorage<T = any> extends EventTarget {
-  connection: any;
-  options: AbstractStorageOptions;
-
-  constructor(connection: any, options?: AbstractStorageOptions);
-
-  static build<T>(
+export interface AbstractStorage<T = any> {
+  constructor: new (
+    connection: any,
     options?: AbstractStorageOptions,
-  ): Promise<AbstractStorage<T>>;
+  ) => AbstractStorage<T>;
 
   /**
    * Insert a record.
