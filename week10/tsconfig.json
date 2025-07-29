@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": false,
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "rootDir": "./",
+    "baseUrl": "./",
+    "allowSyntheticDefaultImports": true,
+    "pretty": true
+  },
+  "include": [
+    "./App/static/**/*.js",
+    "./App/static/**/*.ts",
+    "./App/static/**/*.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}

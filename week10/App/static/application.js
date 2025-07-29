@@ -1,5 +1,5 @@
-import IndexedDbStorage from "./indexedb-storage.js";
-import OPFSStorage from "./opfs-storage.js";
+import IndexedDbStorage from "./storage/indexedb-storage.js";
+import OPFSStorage from "./storage/opfs-storage.js";
 import Logger from "./logger.js";
 
 const logger = new Logger("output");
@@ -26,9 +26,6 @@ class StorageContext {
   readAll(container) {
     return this.strategy.readAll(container);
   }
-  addEventListener(event, callback) {
-    return this.strategy.addEventListener(event, callback);
-  }
 }
 
 const indexedb = await IndexedDbStorage.build({
@@ -43,10 +40,10 @@ const opfs = await OPFSStorage.build();
 const storage = new StorageContext(indexedb);
 
 indexedb.addEventListener("log", (event) => {
-  logger.log(event.detail);
+  logger.log(event);
 });
 opfs.addEventListener("log", (event) => {
-  logger.log(event.detail);
+  logger.log(event);
 });
 
 let usingIndexedDB = true;
@@ -79,6 +76,8 @@ document.getElementById("add").onclick = async () => {
 document.getElementById("get").onclick = async () => {
   await storage.readAll("user");
 };
+
+document.getElementById("get-single").onclick = async () => {};
 
 document.getElementById("update").onclick = async () => {
   const id = prompt("Enter user id:");
