@@ -1,8 +1,5 @@
 import IndexedDbStorage from "./storage/indexedb-storage.js";
 import OPFSStorage from "./storage/opfs-storage.js";
-import Logger from "./logger.js";
-
-const logger = new Logger("output");
 
 class StorageContext {
   constructor(strategy) {
@@ -34,17 +31,8 @@ const indexedb = await IndexedDbStorage.build({
   keyPath: "id",
   autoIncrement: true,
 });
-
 const opfs = await OPFSStorage.build();
-
 const storage = new StorageContext(indexedb);
-
-indexedb.addEventListener("log", (event) => {
-  logger.log(event);
-});
-opfs.addEventListener("log", (event) => {
-  logger.log(event);
-});
 
 let usingIndexedDB = true;
 const toggleBtn = document.getElementById("switch-storage");
@@ -70,22 +58,47 @@ document.getElementById("add").onclick = async () => {
   const age = parseInt(prompt("Enter age:"), 10);
   if (!Number.isInteger(age)) return;
   const result = await storage.insert("user", id, { name, age });
-  console.log(result);
+  console.log("add", result);
 };
 
 document.getElementById("get").onclick = async () => {
-  await storage.readAll("user");
+  const result = await storage.readAll("user");
+  let data = [];
+  if (!usingIndexedDB) {
+    for await (const entry of result) {
+      data.push(entry[0]);
+    }
+  } else {
+    data = result;
+  }
+  console.log("get", data);
 };
 
-document.getElementById("get-single").onclick = async () => {};
+document.getElementById("get-single").onclick = async () => {
+  const id = prompt("Enter user id:");
+  const result = await storage.read("user", id);
+  console.log("get single", result);
+};
 
 document.getElementById("update").onclick = async () => {
   const id = prompt("Enter user id:");
   const record = await storage.read("user", id);
-  await storage.update("user", record.id, { ...record, age: record.age + 1 });
+  let content = record;
+  if (!usingIndexedDB) {
+    const file = await record.getFile();
+    console.log(await file.text());
+    content = JSON.parse(await file.text());
+    console.log("OPFS content to update", content);
+  }
+  const result = await storage.update("user", id, {
+    ...content,
+    age: content.age + 1,
+  });
+  console.log("update", result);
 };
 
 document.getElementById("delete").onclick = async () => {
   const id = prompt("Enter user id:");
   await storage.delete("user", id);
+  console.log("delete", id);
 };

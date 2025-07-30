@@ -8,7 +8,7 @@ class OriginPrivateFileSystemError extends Error {
 }
 
 /**
- * @implements {AbstractStorage<FileSystemHandle>}
+ * @implements {AbstractStorage<FileSystemFileHandle>}
  */
 class OPFSStorage {
   #connection;
@@ -17,7 +17,8 @@ class OPFSStorage {
   constructor(connection, options = {}) {
     const defaultOptions = { keepExistingData: true, extName: "txt" };
     this.#connection = connection;
-    this.#options = { defaultOptions, ...options };
+    this.#options = { ...defaultOptions, ...options };
+    console.log(this.#options);
   }
 
   static async build(options = {}) {
@@ -25,13 +26,14 @@ class OPFSStorage {
     return new OPFSStorage(fs, options);
   }
 
-  async insert(directory, key, content = null) {
+  async insert(directory, file, content = null) {
     const { extName } = this.#options;
+    console.log(this.#options);
     try {
       const dir = await this.#connection.getDirectoryHandle(directory, {
         create: true,
       });
-      const fileHandle = await dir.getFileHandle(`${key}.${extName}`, {
+      const fileHandle = await dir.getFileHandle(`${file}.${extName}`, {
         create: true,
       });
       if (!content) return fileHandle;
@@ -74,12 +76,7 @@ class OPFSStorage {
       const writable = await fileHandle.createWritable({
         keepExistingData,
       });
-      const { size } = await fileHandle.getFile();
-      await writable.write({
-        type: "write",
-        position: size,
-        data: JSON.stringify(content),
-      });
+      await writable.write(JSON.stringify(content));
       await writable.close();
       return fileHandle;
     } catch (error) {

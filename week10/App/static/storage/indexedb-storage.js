@@ -44,7 +44,6 @@ class IndexedDbStorage {
     const { promise, resolve, reject } = withResolvers();
     const request = window.indexedDB.open(name, version);
 
-    // TODO: needs to be model-agnostic
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains("user")) {
@@ -58,14 +57,14 @@ class IndexedDbStorage {
   }
 
   async insert(storeName, id, record) {
+    const { keyPath } = this.#options;
     const { promise, resolve, reject } = withResolvers();
-    const idInt = parseInt(id);
     const tx = this.#connection.transaction(
       storeName,
       TRANSACTION_MODES.READWRITE,
     );
     const store = tx.objectStore(storeName);
-    idInt ? store.add(record, idInt) : store.add(record);
+    keyPath ? store.add(record) : store.add(record, parseInt(id));
     tx.oncomplete = () => {
       resolve(record);
     };
@@ -109,7 +108,6 @@ class IndexedDbStorage {
 
     req.onsuccess = () => {
       const user = req.result;
-      console.log(req);
       if (!user) {
         const error = new Error(`User with id=${id} not found`);
         reject(error);
@@ -137,8 +135,7 @@ class IndexedDbStorage {
       ? store.put(content)
       : store.put(content, idInt);
 
-    req.onsuccess = (event) => {
-      console.log("update", event);
+    req.onsuccess = () => {
       resolve(content);
     };
     req.onerror = () => {
