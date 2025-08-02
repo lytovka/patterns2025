@@ -55,13 +55,13 @@ class IndexedDbWrapper extends EventTarget {
 
     tx.objectStore(storeName).add(record);
     tx.oncomplete = () => {
-      this.#emit("log", { action: 'insert', data: record })
-      resolve(record)
+      this.#emit('log', { action: 'insert', data: record });
+      resolve(record);
     };
     tx.onerror = () => {
-      const error = new Error('Could not add record')
-      this.#emit("log", { action: 'insert', data: error.message })
-      reject(error)
+      const error = new Error('Could not add record');
+      this.#emit('log', { action: 'insert', data: error.message });
+      reject(error);
     };
 
     return promise;
@@ -74,13 +74,13 @@ class IndexedDbWrapper extends EventTarget {
     const req = store.getAll();
 
     req.onsuccess = () => {
-      this.#emit("log", { action: "readAll", data: req.result })
-      resolve(req.result)
+      this.#emit('log', { action: 'readAll', data: req.result });
+      resolve(req.result);
     };
     req.onerror = () => {
-      const error = new Error('Could not read record')
-      this.#emit("log", { action: "readAll", data: error.message })
-      reject(error)
+      const error = new Error('Could not read record');
+      this.#emit('log', { action: 'readAll', data: error.message });
+      reject(error);
     };
 
     return promise;
@@ -96,18 +96,18 @@ class IndexedDbWrapper extends EventTarget {
     req.onsuccess = () => {
       const user = req.result;
       if (!user) {
-        const error = new Error(`User with id=${id} not found`)
-        this.#emit("log", { action: "readSingle", data: error.message })
-        reject(error)
+        const error = new Error(`User with id=${id} not found`);
+        this.#emit('log', { action: 'readSingle', data: error.message });
+        reject(error);
         return;
       }
-      this.#emit("log", { action: "readSingle", data: user })
-      resolve(user)
+      this.#emit('log', { action: 'readSingle', data: user });
+      resolve(user);
     };
     req.onerror = () => {
-      const error = new Error('Update failed')
-      this.#emit("log", { action: "readSingle", data: error.message })
-      reject(error)
+      const error = new Error('Update failed');
+      this.#emit('log', { action: 'readSingle', data: error.message });
+      reject(error);
     };
 
     return promise;
@@ -124,30 +124,25 @@ class IndexedDbWrapper extends EventTarget {
     req.onsuccess = (event) => {
       const cursor = event.target.result;
       if (!cursor) {
-        this.#emit("log", { action: "read", data: result })
-        resolve(result)
+        this.#emit('log', { action: 'read', data: result });
+        resolve(result);
         return;
       }
       const user = cursor.value;
       const [objKey, operation] = Object.entries(condition)[0];
       const [operationKey, value] = Object.entries(operation)[0];
-      const op = OPERATIONS[operationKey] || null
+      const op = OPERATIONS[operationKey] || null;
       if (!op) {
-        result.push(user)
-      }
-      else if (
-        op(user[objKey], value) ||
-        !condition ||
-        !operation
-      )
+        result.push(user);
+      } else if (op(user[objKey], value) || !condition || !operation)
         result.push(user);
 
       cursor.continue();
     };
     req.onerror = () => {
-      const error = new Error('Adult query failed')
-      this.#emit("log", { action: "read", data: error.message })
-      reject(error)
+      const error = new Error('Adult query failed');
+      this.#emit('log', { action: 'read', data: error.message });
+      reject(error);
     };
 
     return promise;
@@ -162,22 +157,22 @@ class IndexedDbWrapper extends EventTarget {
     req.onsuccess = () => {
       const user = req.result;
       if (!user) {
-        const error = new Error(`User with id=${id} not found`)
-        this.#emit("log", { action: "update", data: error.message })
-        reject(error)
+        const error = new Error(`User with id=${id} not found`);
+        this.#emit('log', { action: 'update', data: error.message });
+        reject(error);
         return;
       }
       user.age += 1;
       store.put(user);
       tx.oncomplete = () => {
-        this.#emit("log", { action: "update", data: user })
-        resolve(user)
+        this.#emit('log', { action: 'update', data: user });
+        resolve(user);
       };
     };
     req.onerror = () => {
-      const error = new Error('Update failed')
-      this.#emit("log", { action: "update", data: error.message })
-      reject(error)
+      const error = new Error('Update failed');
+      this.#emit('log', { action: 'update', data: error.message });
+      reject(error);
     };
     return promise;
   }
@@ -189,17 +184,17 @@ class IndexedDbWrapper extends EventTarget {
       tx.objectStore(storeName).delete(record.id);
 
       tx.oncomplete = () => {
-        this.#emit("log", { action: "delete", data: record })
-        resolve(record)
+        this.#emit('log', { action: 'delete', data: record });
+        resolve(record);
       };
       tx.onerror = () => {
-        const error = new Error("Delete failed")
-        this.#emit("log", { action: "delete", data: error.message })
-        resolve(error)
+        const error = new Error('Delete failed');
+        this.#emit('log', { action: 'delete', data: error.message });
+        resolve(error);
       };
 
       return promise;
-    }, reject)
+    }, reject);
   }
 
   #emit(type, detail) {
@@ -207,4 +202,4 @@ class IndexedDbWrapper extends EventTarget {
   }
 }
 
-export default IndexedDbWrapper
+export default IndexedDbWrapper;

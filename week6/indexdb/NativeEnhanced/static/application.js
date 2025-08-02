@@ -1,4 +1,4 @@
-import IndexedDbWrapper from "./indexeddb-wrapper.js"
+import IndexedDbWrapper from './indexeddb-wrapper.js';
 
 class Logger {
   #output;
