@@ -1,0 +1,13 @@
+{
+  "name": "patterns",
+  "version": "1.0.0",
+  "scripts": {
+    "lint": "eslint . && prettier -c \"**/*.js\"",
+    "fix": "eslint . --fix || prettier --write \"**/*.js\"",
+    "test": "node --test"
+  },
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

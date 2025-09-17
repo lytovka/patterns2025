@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dependency Inversion Example</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <h1>Dependency Inversion Example</h1>
+    <div class="controls">
+      <p>Current storage: <span id="storage-value">Indexed DB</span></p>
+      <button id="switch-storage">Switch Storage</button>
+    </div>
+    <div class="controls">
+      <button id="add">Add User</button>
+      <button id="get">Get All Users</button>
+      <button id="get-single">Get User</button>
+      <button id="update">Update User</button>
+      <button id="delete">Delete User</button>
+    </div>
+    <pre id="output"></pre>
+    <script type="module" src="./application.js"></script>
+  </body>
+</html>
